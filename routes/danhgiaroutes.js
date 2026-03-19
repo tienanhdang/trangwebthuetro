@@ -3,6 +3,10 @@ const router = express.Router();
 
 const danhgiaController = require("../controllers/danhgiaController");
 
-router.get("/:id/danhgia", danhgiaController.getDanhGia);
+// Lấy đánh giá
+router.get("/:id", danhgiaController.getDanhGia);
+
+// Thêm đánh giá
+router.post("/", danhgiaController.addDanhGia);
 
 module.exports = router;
