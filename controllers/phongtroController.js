@@ -67,7 +67,6 @@ exports.getHinhAnh = (req, res) => {
 /* ĐĂNG PHÒNG */
 
 exports.createPhongTro = (req, res) => {
-<<<<<<< HEAD
     // 1. KIỂM TRA QUYỀN: Nếu không phải chủ trọ thì đuổi về luôn
     if (req.user.role !== 'chu_tro') {
         return res.status(403).json({ message: "Chỉ tài khoản Chủ trọ mới có quyền đăng phòng!" });
@@ -77,11 +76,6 @@ exports.createPhongTro = (req, res) => {
     const chu_phong_id = req.user.id; 
 
     const {
-=======
-
-    const {
-        chu_phong_id,
->>>>>>> 54eaff2179c38179cbf8a75ded942cd3a88295f6
         tieu_de,
         dia_chi,
         quan_huyen,
