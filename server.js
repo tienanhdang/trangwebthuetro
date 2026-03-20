@@ -9,7 +9,7 @@ app.use(express.json());
 // Nhập các file Routes
 const phongtroRoutes = require("./routes/phongtroroutes");
 const danhgiaRoutes = require("./routes/danhgiaroutes");
-const userRoutes = require("./routes/userRoutes"); // <-- THÊM DÒNG NÀY
+const userRoutes = require("./routes/userroutes"); // <-- THÊM DÒNG NÀY
 
 // Thiết lập đường dẫn API (Định tuyến)
 app.use("/phongtro", phongtroRoutes);
