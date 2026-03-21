@@ -1,0 +1,33 @@
+<html>
+<body>
+<h2>Quản lý phòng</h2>
+<a href="add-room.html">Thêm phòng</a>
+<div id="rooms"></div>
+
+<script>
+async function load(){
+  const res=await fetch('http://localhost:3000/api/my-rooms',{
+    headers:{Authorization:localStorage.getItem('token')}
+  });
+  const data=await res.json();
+
+  const div=document.getElementById('rooms');
+  data.forEach(r=>{
+    div.innerHTML+=`
+      <div>
+        ${r.ten}
+        <button onclick="del(${r.id})">Xóa</button>
+      </div>`;
+  });
+}
+
+async function del(id){
+  await fetch(`http://localhost:3000/api/rooms/${id}`,{
+    method:'DELETE'
+  });
+  location.reload();
+}
+load();
+</script>
+</body>
+</html>

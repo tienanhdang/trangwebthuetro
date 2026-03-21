@@ -1,0 +1,25 @@
+<html>
+<body>
+<h2>Chi tiết phòng</h2>
+<div id="detail"></div>
+
+<script>
+const id = new URLSearchParams(location.search).get('id');
+
+async function load(){
+  const res = await fetch(`http://localhost:3000/phongtro/${id}`);
+  const r = await res.json();
+
+  document.getElementById('detail').innerHTML = `
+    <h3>${r.tieu_de}</h3>
+    <p>Giá: ${r.gia_tien}</p>
+    <p>Địa chỉ: ${r.dia_chi}</p>
+    <p>Diện tích: ${r.dien_tich}</p>
+    <p>Nội thất: ${r.noi_that?.join(', ')}</p>
+  `;
+}
+
+load();
+</script>
+</body>
+</html>

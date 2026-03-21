@@ -1,7 +1,9 @@
 require('dotenv').config();
-const express = require("express");
+const express = require('express');
+const cors = require('cors'); // 1. Import nó vào
+const app = express();
 
-    const app = express();
+app.use(cors());
 
 // Middleware để đọc được dữ liệu JSON từ Frontend gửi lên
 app.use(express.json());

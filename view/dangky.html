@@ -1,0 +1,20 @@
+<html>
+<body>
+<h2>Đăng ký</h2>
+<input id="name" placeholder="Tên">
+<input id="email" placeholder="Email">
+<input id="password" type="password">
+<button onclick="register()">Đăng ký</button>
+
+<script>
+async function register(){
+  await fetch('http://localhost:3000/api/register',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name:name.value,email:email.value,password:password.value})
+  });
+  alert('Đăng ký thành công');
+}
+</script>
+</body>
+</html>

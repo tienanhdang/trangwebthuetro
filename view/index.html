@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Trang chủ</title>
+
+<style>
+body{font-family:Arial;background:#f5f5f5;margin:0}
+header{background:#2c3e50;color:white;padding:15px;display:flex;justify-content:space-between}
+a{color:white;margin-left:10px;text-decoration:none}
+.container{padding:20px}
+.card{background:#fff;padding:15px;margin:10px 0;border-radius:10px}
+input{padding:8px;margin:5px}
+button{padding:8px 12px;background:#3498db;color:white;border:none;border-radius:5px}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>🏠 Web Phòng Trọ</div>
+  <div>
+    <a href="login.html">Đăng nhập</a>
+    <a href="register.html">Đăng ký</a>
+  </div>
+</header>
+
+<div class="container">
+  <h2>Tìm kiếm phòng</h2>
+
+  <input id="search" placeholder="Tìm theo tiêu đề hoặc địa chỉ">
+  <input id="gia_min" type="number" placeholder="Giá min">
+  <input id="gia_max" type="number" placeholder="Giá max">
+  <input id="thanh_pho" placeholder="Thành phố">
+  <input id="quan_huyen" placeholder="Quận huyện">
+
+  <button onclick="loadRooms()">Tìm</button>
+
+  <h2>Danh sách phòng</h2>
+  <div id="list"></div>
+</div>
+
+<script>
+async function loadRooms(){
+  try {
+    const keyword = document.getElementById('search').value;
+    const gia_min = document.getElementById('gia_min').value;
+    const gia_max = document.getElementById('gia_max').value;
+    const thanh_pho = document.getElementById('thanh_pho').value;
+    const quan_huyen = document.getElementById('quan_huyen').value;
+
+    const url = `http://localhost:3000/phongtro?keyword=${keyword}&gia_min=${gia_min}&gia_max=${gia_max}&thanh_pho=${thanh_pho}&quan_huyen=${quan_huyen}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    console.log("DATA:", data); // debug
+
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+
+    if(!Array.isArray(data) || data.length === 0){
+      list.innerHTML = '<p>Không có phòng</p>';
+      return;
+    }
+
+    data.forEach(r=>{
+      list.innerHTML += `
+        <div class="card">
+          <h3>${r.tieu_de}</h3>
+          <p>Giá: ${r.gia_tien}</p>
+          <p>Địa chỉ: ${r.dia_chi}</p>
+          <a href="chitiet.html?id=${r.id}">Xem chi tiết</a>
+        </div>
+      `;
+    });
+
+  } catch (err) {
+    console.error("Lỗi:", err);
+  }
+}
+
+loadRooms();
+</script>
+
+</body>
+</html>
