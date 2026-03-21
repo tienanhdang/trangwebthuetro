@@ -22,5 +22,11 @@ router.post("/", authMiddleware.verifyToken, phongtroController.createPhongTro);
 //DELETE có verifyToken
 router.delete("/:id", authMiddleware.verifyToken, phongtroController.deletePhongTro);
 
+//SỬA PHÒNG có verifyToken
+router.put("/:id", authMiddleware.verifyToken, phongtroController.updatePhongTro);
+
+//CẬP NHẬT TRẠNG THÁI có verifyToken 
+router.patch("/:id/trangthai", authMiddleware.verifyToken, phongtroController.updateTrangThai);
+
 module.exports = router;
 router.get("/:id/lienhe", phongtroController.getLienHe);

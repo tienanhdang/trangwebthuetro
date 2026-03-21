@@ -236,7 +236,81 @@ exports.getPhongTroById = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+/* Sửa phòng */
+exports.updatePhongTro = async (req, res) => {
+  try {
+    const phongId = req.params.id;
+    const userId = req.user.id;
 
+    const {
+      tieu_de,
+      dia_chi,
+      quan_huyen,
+      thanh_pho,
+      gia_tien,
+      dien_tich
+    } = req.body;
+
+    const sql = `
+      UPDATE phong_tro
+      SET tieu_de = ?, dia_chi = ?, quan_huyen = ?, thanh_pho = ?, gia_tien = ?, dien_tich = ?
+      WHERE id = ? AND chu_phong_id = ?
+    `;
+
+    const [result] = await db.execute(sql, [
+      tieu_de,
+      dia_chi,
+      quan_huyen,
+      thanh_pho,
+      gia_tien,
+      dien_tich,
+      phongId,
+      userId
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(403).json({
+        message: "Bạn không có quyền sửa phòng này!"
+      });
+    }
+
+    res.json({ message: "Cập nhật phòng thành công" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+/* Cập nhật phòng */
+exports.updateTrangThai = async (req, res) => {
+  try {
+    const phongId = req.params.id;
+    const userId = req.user.id;
+    const { trang_thai } = req.body;
+
+    const sql = `
+      UPDATE phong_tro
+      SET trang_thai = ?
+      WHERE id = ? AND chu_phong_id = ?
+    `;
+
+    const [result] = await db.execute(sql, [
+      trang_thai,
+      phongId,
+      userId
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(403).json({
+        message: "Bạn không có quyền cập nhật trạng thái!"
+      });
+    }
+
+    res.json({ message: "Cập nhật trạng thái thành công" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 /* ================================
 3. GET /phong/:id/lienhe
