@@ -125,3 +125,146 @@ exports.deletePhongTro = (req, res) => {
         res.status(200).json({ message: "Phòng trọ đã được xóa" });
     });
 };
+/* ================================
+1.TÌM KIẾM + LỌC 
+================================ */
+exports.getAllPhongTro = async (req, res) => {
+  try {
+    const {
+      keyword,
+      gia_min,
+      gia_max,
+      thanh_pho,
+      quan_huyen,
+      noi_that,
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    let sql = `
+      SELECT DISTINCT p.*
+      FROM phong p
+      LEFT JOIN phong_noi_that pnt ON p.id = pnt.phong_id
+      LEFT JOIN noi_that nt ON pnt.noi_that_id = nt.id
+      WHERE 1=1
+    `;
+
+    let params = [];
+
+    // tìm kiếm (tên + mô tả)
+    if (keyword) {
+      sql += " AND (p.ten LIKE ? OR p.mo_ta LIKE ?)";
+      params.push(`%${keyword}%`, `%${keyword}%`);
+    }
+
+    // lọc giá
+    if (gia_min) {
+      sql += " AND p.gia >= ?";
+      params.push(gia_min);
+    }
+
+    if (gia_max) {
+      sql += " AND p.gia <= ?";
+      params.push(gia_max);
+    }
+
+    //địa điểm
+    if (thanh_pho) {
+      sql += " AND p.thanh_pho = ?";
+      params.push(thanh_pho);
+    }
+
+    if (quan_huyen) {
+      sql += " AND p.quan_huyen = ?";
+      params.push(quan_huyen);
+    }
+
+    // nội thất (nhiều giá trị)
+    if (noi_that) {
+      const list = noi_that.split(","); // vd: may lanh,tu lanh
+      sql += ` AND nt.ten_noi_that IN (${list.map(() => "?").join(",")})`;
+      params.push(...list);
+    }
+
+    // phân trang
+    const offset = (page - 1) * limit;
+    sql += " LIMIT ? OFFSET ?";
+    params.push(parseInt(limit), parseInt(offset));
+
+    const [rows] = await db.execute(sql, params);
+
+    res.json(rows);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+/* ================================
+2. GET /phong/:id
+CHI TIẾT PHÒNG + NỘI THẤT
+================================ */
+exports.getPhongTroById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // lấy phòng
+    const [phong] = await db.execute(
+      "SELECT * FROM phong WHERE id = ?",
+      [id]
+    );
+
+    if (phong.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy phòng" });
+    }
+
+    // lấy nội thất
+    const [noiThat] = await db.execute(`
+      SELECT nt.ten_noi_that
+      FROM phong_noi_that pnt
+      JOIN noi_that nt ON pnt.noi_that_id = nt.id
+      WHERE pnt.phong_id = ?
+    `, [id]);
+
+    res.json({
+      ...phong[0],
+      noi_that: noiThat.map(n => n.ten_noi_that)
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+/* ================================
+3. GET /phong/:id/lienhe
+ẨN SĐT NẾU CHƯA LOGIN
+
+exports.getLienHe = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [rows] = await db.execute(
+      "SELECT so_dien_thoai FROM phong WHERE id = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy phòng" });
+    }
+
+    // 🔐 giả lập login
+    const token = req.headers.authorization;
+
+    if (token !== "Bearer token123") {
+      return res.json({ so_dien_thoai: "********" });
+    }
+
+    res.json(rows[0]);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

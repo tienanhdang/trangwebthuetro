@@ -23,3 +23,4 @@ router.post("/", authMiddleware.verifyToken, phongtroController.createPhongTro);
 router.delete("/:id", authMiddleware.verifyToken, phongtroController.deletePhongTro);
 
 module.exports = router;
+router.get("/:id/lienhe", phongtroController.getLienHe);
