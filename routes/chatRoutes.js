@@ -4,6 +4,7 @@ const { verifyToken: authMiddleware } = require('../middleware/authMiddleware');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
+const db = require('../config/db');
 
 // Socket.io instance (sẽ được truyền từ server.js)
 let io;
@@ -143,6 +144,51 @@ router.post('/create-conversation', authMiddleware, async (req, res) => {
         });
     } catch (error) {
         console.error('Lỗi tạo cuộc trò chuyện:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// Lấy conversation từ notification để reply tin nhắn
+router.post('/conversation-from-notification', authMiddleware, async (req, res) => {
+    try {
+        const { notificationId } = req.body;
+        if (!notificationId) {
+            return res.status(400).json({ error: 'Thiếu notificationId' });
+        }
+
+        const [rows] = await db.query(
+            'SELECT sender_id, message FROM notifications WHERE id = ? AND user_id = ?',
+            [notificationId, req.user.id]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy thông báo' });
+        }
+
+        let senderId = rows[0].sender_id;
+        const noteMessage = rows[0].message || '';
+
+        if (!senderId) {
+            const match = noteMessage.match(/^(.*?)\s+đã gửi tin nhắn mới/i);
+            if (match && match[1]) {
+                const senderName = match[1].trim();
+                const [users] = await db.query('SELECT id FROM nguoi_dung WHERE ho_ten = ? LIMIT 1', [senderName]);
+                if (users.length > 0) {
+                    senderId = users[0].id;
+                }
+            }
+        }
+
+        if (!senderId) {
+            return res.status(400).json({ error: 'Không tìm thấy thông tin người gửi' });
+        }
+
+        const conversationId = await Conversation.createOrGet(req.user.id, senderId);
+        const conversation = await Conversation.getById(conversationId);
+
+        res.json({ success: true, conversation });
+    } catch (error) {
+        console.error('Lỗi lấy conversation từ notification:', error);
         res.status(500).json({ error: 'Lỗi server' });
     }
 });

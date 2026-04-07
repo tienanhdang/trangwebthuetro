@@ -74,6 +74,19 @@ async function fixForeignKeys() {
             console.log('⚠️ Không có foreign key cũ trong bookings');
         }
 
+        // Thêm cột updated_at nếu chưa có
+        try {
+            const [rows] = await connection.execute("SHOW COLUMNS FROM bookings LIKE 'updated_at'");
+            if (rows.length === 0) {
+                await connection.execute('ALTER TABLE bookings ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at');
+                console.log('✅ Đã thêm cột updated_at vào bookings');
+            } else {
+                console.log('✅ Cột updated_at đã tồn tại trong bookings');
+            }
+        } catch (err) {
+            console.log('⚠️ Không thể thêm cột updated_at vào bookings:', err.message);
+        }
+
         // Thêm foreign key constraint mới tham chiếu đến nguoi_dung và phong_tro
         await connection.execute(`
             ALTER TABLE bookings 

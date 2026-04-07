@@ -381,13 +381,6 @@
             return false;
         }
 
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.role !== 'chu_tro') {
-            alert("⚠️ Chức năng này chỉ dành cho chủ trọ!");
-            window.location.href = 'index.html';
-            return false;
-        }
-
         return true;
     }
 
@@ -575,6 +568,26 @@
         }
     }
 
+    async function deleteNotification(notificationId) {
+        const token = localStorage.getItem('token');
+
+        try {
+            const res = await fetch(`/api/notifications/${notificationId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (res.ok) {
+                loadNotifications();
+                return true;
+            }
+        } catch (err) {
+            console.error('Lỗi xóa thông báo:', err);
+        }
+
+        return false;
+    }
+
     // Đánh dấu tất cả đã đọc
     async function markAllAsRead() {
         const token = localStorage.getItem('token');
@@ -622,17 +635,18 @@
             }
             
             // Tạo hoặc lấy conversation với người gửi
-            const createConvRes = await fetch('/api/chat/create-conversation', {
+            const createConvRes = await fetch('/api/chat/conversation-from-notification', {
                 method: 'POST',
                 headers: {
                     'Authorization': 'Bearer ' + token,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userId: notification.sender_id })
+                body: JSON.stringify({ notificationId })
             });
             
             if (!createConvRes.ok) {
-                alert('Không thể tạo cuộc trò chuyện');
+                const errData = await createConvRes.json();
+                alert(errData.error || 'Không thể tạo cuộc trò chuyện');
                 return;
             }
             
@@ -674,19 +688,31 @@
             }
             
             // Parse bookingId từ message
+            let confirmRes;
             const bookingId = getBookingIdFromNotification(notification);
-            if (!bookingId) {
-                alert('Không tìm thấy mã đặt phòng');
-                return;
+            if (bookingId) {
+                confirmRes = await fetch(`/api/bookings/${bookingId}/confirm`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+            } else {
+                confirmRes = await fetch('/api/bookings/confirm-by-notification', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ notificationId })
+                });
             }
-
-            const confirmRes = await fetch(`/api/bookings/${bookingId}/confirm`, {
-                method: 'POST',
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
 
             if (!confirmRes.ok) {
                 const errData = await confirmRes.json();
+                if (errData.error && errData.error.includes('Đơn đặt phòng đã được xử lý')) {
+                    await deleteNotification(notificationId);
+                    alert('Thông báo đã được xóa vì đơn đặt phòng đã xử lý.');
+                    return;
+                }
                 alert('❌ ' + (errData.error || 'Không thể xác nhận đặt phòng'));
                 return;
             }
@@ -768,6 +794,11 @@
 
             if (!rejectRes.ok) {
                 const errData = await rejectRes.json();
+                if (errData.error && errData.error.includes('Không tìm thấy đơn đặt phòng')) {
+                    await deleteNotification(notificationId);
+                    alert('Thông báo đã được xóa vì đơn đặt phòng đã xử lý hoặc không còn tồn tại.');
+                    return;
+                }
                 alert('❌ ' + (errData.error || 'Không thể từ chối đặt phòng'));
                 return;
             }
@@ -814,6 +845,11 @@
 
             if (!confirmRes.ok) {
                 const errData = await confirmRes.json();
+                if (errData.error && (errData.error.includes('Không tìm thấy') || errData.error.includes('Đơn đặt phòng đã được xử lý'))) {
+                    await deleteNotification(notificationId);
+                    alert('Thông báo đã được xóa vì đơn đặt phòng đã xử lý hoặc không tồn tại.');
+                    return;
+                }
                 alert('❌ ' + (errData.error || 'Không thể xác nhận hủy phòng'));
                 return;
             }

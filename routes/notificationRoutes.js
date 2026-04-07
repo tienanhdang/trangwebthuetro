@@ -13,6 +13,7 @@ router.get('/', authMiddleware, async (req, res) => {
                 n.id,
                 n.type,
                 n.booking_id,
+                n.sender_id,
                 n.message,
                 n.is_read,
                 n.created_at
@@ -95,6 +96,29 @@ router.get('/unread-count', authMiddleware, async (req, res) => {
         res.json({ count: result[0].count });
     } catch (error) {
         console.error('Lỗi lấy số thông báo chưa đọc:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// Xóa thông báo
+router.delete('/:notificationId', authMiddleware, async (req, res) => {
+    try {
+        const { notificationId } = req.params;
+        const userId = req.user.id;
+
+        const [notifications] = await db.query(
+            'SELECT id FROM notifications WHERE id = ? AND user_id = ?',
+            [notificationId, userId]
+        );
+
+        if (notifications.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy thông báo' });
+        }
+
+        await db.query('DELETE FROM notifications WHERE id = ?', [notificationId]);
+        res.json({ message: 'Xóa thông báo thành công' });
+    } catch (error) {
+        console.error('Lỗi xóa thông báo:', error);
         res.status(500).json({ error: 'Lỗi server' });
     }
 });

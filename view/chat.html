@@ -535,9 +535,12 @@
         // Thiết lập các sự kiện Socket.io
         function setupSocketEvents() {
             socket.on('new_message', (data) => {
+                const user = parseJWT(localStorage.getItem('token'));
                 if (data.conversation_id === currentConversationId) {
-                    appendMessage(data);
-                    scrollToBottom();
+                    if (data.sender_id !== user.id) {
+                        appendMessage(data);
+                        scrollToBottom();
+                    }
                 } else {
                     // Cập nhật preview trong danh sách cuộc trò chuyện
                     updateConversationPreview(data.conversation_id, data.sender_name, data.content);

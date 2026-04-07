@@ -118,7 +118,7 @@ class Booking {
         try {
             const query = `
                 UPDATE bookings 
-                SET trang_thai = ?, updated_at = CURRENT_TIMESTAMP
+                SET trang_thai = ?
                 WHERE id = ?
             `;
             await db.execute(query, [trang_thai, id]);
@@ -144,7 +144,7 @@ class Booking {
         try {
             const query = `
                 UPDATE bookings 
-                SET trang_thai = 'cancelled', updated_at = CURRENT_TIMESTAMP
+                SET trang_thai = 'cancelled'
                 WHERE id = ?
             `;
             await db.execute(query, [id]);
@@ -168,7 +168,7 @@ class Booking {
         try {
             const query = `
                 UPDATE bookings 
-                SET trang_thai = 'rejected', updated_at = CURRENT_TIMESTAMP
+                SET trang_thai = 'rejected'
                 WHERE id = ?
             `;
             await db.execute(query, [id]);
