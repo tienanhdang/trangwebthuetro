@@ -5,6 +5,7 @@ const upload = require("../middleware/upload");
 const phongtroController = require("../controllers/phongtroController");
 const { verifyToken: authMiddleware } = require("../middleware/authMiddleware");
 
+
 router.get(
   "/my",
   authMiddleware,
@@ -33,7 +34,12 @@ router.post(
 router.delete("/:id", authMiddleware, phongtroController.deletePhongTro);
 
 //SỬA PHÒNG có verifyToken
-router.put("/:id", authMiddleware, phongtroController.updatePhongTro);
+router.put(
+  "/:id", 
+  authMiddleware, 
+  upload.array("images", 10), // <--- PHẢI CÓ DÒNG NÀY
+  phongtroController.updatePhongTro
+);
 
 //CẬP NHẬT TRẠNG THÁI có verifyToken 
 router.patch("/:id/trangthai", authMiddleware, phongtroController.updateTrangThai);

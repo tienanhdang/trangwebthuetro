@@ -5,138 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng phòng trọ</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --glass: rgba(255, 255, 255, 0.95);
+        :root { 
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            --glass: rgba(255, 255, 255, 0.95); 
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-attachment: fixed;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--primary-gradient); 
+            background-attachment: fixed; 
+            margin: 0; 
+            min-height: 100vh; 
         }
-
-        /* Nav Bar */
-        .nav-bar {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 15px 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        .nav-bar { 
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px); 
+            padding: 15px 30px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
         }
-        .nav-bar a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 15px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .nav-bar a { color: white; text-decoration: none; font-weight: bold; }
+        
+        .form-container { 
+            background: var(--glass); 
+            padding: 40px; 
+            border-radius: 24px; 
+            max-width: 700px; 
+            margin: 40px auto; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
         }
-
-        .form-container {
-            background: var(--glass);
-            padding: 40px;
-            border-radius: 24px;
-            max-width: 700px;
-            margin: 40px auto;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-        }
-
-        h2 { font-size: 28px; color: #2d3436; margin-bottom: 25px; text-align: center; }
-        h3 { font-size: 18px; color: #4a5568; margin: 25px 0 15px; border-left: 4px solid #667eea; padding-left: 10px; }
-
+        h2 { text-align: center; color: #2d3436; margin-bottom: 25px; }
         label { display: block; font-size: 14px; font-weight: 600; color: #718096; margin-bottom: 5px; }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            border: 2px solid #edf2f7;
-            border-radius: 12px;
-            box-sizing: border-box;
-            font-size: 16px;
+        
+        input, select, textarea { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 20px; 
+            border: 2px solid #edf2f7; 
+            border-radius: 12px; 
+            box-sizing: border-box; 
+            outline: none; 
             transition: 0.3s;
-            outline: none;
         }
+        input:focus, select:focus { border-color: #667eea; }
 
-        input:focus, textarea:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        }
-
-        /* Map Section */
-        #map-selection {
-            width: 100%;
-            height: 350px;
-            border-radius: 16px;
-            margin-bottom: 10px;
-            border: 3px solid white;
+        #map-selection { 
+            width: 100%; 
+            height: 350px; 
+            border-radius: 16px; 
+            margin-bottom: 20px; 
+            border: 3px solid white; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
-        /* Checkbox grid */
-        .amenities-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 30px;
+        button { 
+            padding: 16px; 
+            background: var(--primary-gradient); 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 18px; 
+            font-weight: bold; 
+            transition: 0.3s; 
         }
-
-        .amenities-grid label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            color: #4a5568;
-            font-weight: 500;
-        }
-
-        .amenities-grid input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin: 0;
-            cursor: pointer;
-        }
-
-        /* File input custom */
-        input[type="file"] {
-            background: #f8fafc;
-            padding: 20px;
-            border: 2px dashed #cbd5e0;
-            cursor: pointer;
-        }
-
-        button {
-            padding: 16px;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 18px;
-            font-weight: bold;
-            transition: 0.3s;
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-            margin-top: 10px;
-        }
-
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px rgba(102, 126, 234, 0.4);
-            filter: brightness(1.1);
-        }
-
-        .hint { font-size: 13px; color: #718096; margin-top: -10px; margin-bottom: 15px; display: block; }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
     </style>
 </head>
 <body>
@@ -147,180 +81,192 @@
 
 <div class="form-container">
     <h2>🚀 Đăng phòng trọ mới</h2>
-    <p style="text-align: center; color: #718096; margin-top: -15px; margin-bottom: 30px;">Vui lòng cung cấp đầy đủ thông tin để đăng phòng trọ mới.</p>
 
     <label>Tiêu đề bài viết</label>
-    <input id="tieu_de" placeholder="Ví dụ: Phòng trọ khép kín, gần Đại học Bách Khoa...">
+    <input id="tieu_de" placeholder="Ví dụ: Phòng trọ khép kín gần trung tâm...">
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
         <div>
             <label>Giá tiền (VNĐ/tháng)</label>
-            <input id="gia_tien" type="number" placeholder="Ví dụ: 3500000">
+            <input id="gia_tien" type="number" placeholder="3500000">
         </div>
         <div>
             <label>Diện tích (m²)</label>
-            <input id="dien_tich" type="number" placeholder="Ví dụ: 25">
+            <input id="dien_tich" type="number" placeholder="25">
         </div>
     </div>
 
-    <label>Địa chỉ cụ thể</label>
-    <input id="dia_chi" placeholder="Số nhà, tên đường, phường/xã...">
+    <label>Địa chỉ cụ thể (Số nhà, tên đường)</label>
+    <input id="dia_chi" placeholder="Số 5 Phố Hàng Bạc..." onchange="updateMapFromAddress()">
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+            <label>Thành phố</label>
+            <select id="thanh_pho" onchange="loadPhuongXa(); updateMapFromAddress();">
+                <option value="">Chọn thành phố</option>
+                <option value="Hà Nội">Hà Nội</option>
+                <option value="Hồ Chí Minh">Thành phố Hồ Chí Minh</option>
+            </select>
+        </div>
         <div>
             <label>Phường xã</label>
             <select id="phuong_xa">
                 <option value="">Chọn phường xã</option>
             </select>
         </div>
-        <div>
-            <label>Thành phố</label>
-            <select id="thanh_pho" onchange="loadPhuongXa()">
-                <option value="">Chọn thành phố</option>
-                <option value="Ha Noi">Hà Nội</option>
-                <option value="Hai Phong">Hải Phòng</option>
-                <option value="Ho Chi Minh">Thành phố Hồ Chí Minh</option>
-            </select>
-        </div>
     </div>
 
     <label>Mô tả chi tiết</label>
-    <textarea id="mo_ta" placeholder="Mô tả về giờ giấc, điện nước, an ninh..." rows="5"></textarea>
-
-    <label>Quy định phòng trọ</label>
-    <textarea id="quy_dinh" placeholder="Ví dụ: Không nuôi thú cưng, không hút thuốc trong phòng..." rows="3"></textarea>
-
-    <label>Ghi chú thêm</label>
-    <textarea id="ghi_chu" placeholder="Thông tin bổ sung khác..." rows="3"></textarea>
+    <textarea id="mo_ta" rows="4" placeholder="Thông tin về điện nước, tiện ích..."></textarea>
 
     <h3>📍 Vị trí trên bản đồ</h3>
-    <span class="hint">Click chuột vào bản đồ để đánh dấu vị trí chính xác của phòng trọ.</span>
     <div id="map-selection"></div>
     
     <input type="hidden" id="lat">
     <input type="hidden" id="lng">
 
     <h3>🖼️ Hình ảnh thực tế</h3>
-    <span class="hint">Nên tải lên ít nhất 3 ảnh rõ nét để bài đăng uy tín hơn.</span>
     <input type="file" id="images" multiple accept="image/*">
-
-    <h3>🛋️ Tiện nghi có sẵn</h3>
-    <div class="amenities-grid">
-        <label><input type="checkbox" class="noi-that" value="1"> Điều hoà</label>
-        <label><input type="checkbox" class="noi-that" value="2"> Bình nóng lạnh</label>
-        <label><input type="checkbox" class="noi-that" value="3"> Vệ sinh khép kín</label>
-        <label><input type="checkbox" class="noi-that" value="4"> Giường ngủ</label>
-        <label><input type="checkbox" class="noi-that" value="5"> Khu vực bếp</label>
-        <label><input type="checkbox" class="noi-that" value="6"> Tủ quần áo</label>
-        <label><input type="checkbox" class="noi-that" value="7"> Máy giặt</label>
-        <label><input type="checkbox" class="noi-that" value="8"> Ban công</label>
-    </div>
 
     <button onclick="add()">ĐĂNG PHÒNG</button>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
     let map, marker;
 
-    function initLeafletMap() {
-        // Mặc định ở Hà Nội
-        map = L.map('map-selection').setView([21.0285, 105.8542], 13);
+    const phuongXaHaNoi = ["Hoàn Kiếm","Cửa Nam","Ba Đình","Ngọc Hà","Giảng Võ","Hai Bà Trưng","Vĩnh Tuy","Bạch Mai","Đống Đa","Kim Liên","Văn Miếu - Quốc Tử Giám","Láng","Ô Chợ Dừa","Hồng Hà","Lĩnh Nam","Hoàng Mai","Vĩnh Hưng","Tương Mai","Định Công","Hoàng Liệt","Yên Sở","Thanh Xuân","Khương Đình","Phương Liệt","Cầu Giấy","Nghĩa Đô","Yên Hòa","Tây Hồ","Phú Thượng","Tây Tựu","Phú Diễn","Xuân Đỉnh","Đông Ngạc","Thượng Cát","Từ Liêm","Xuân Phương","Tây Mỗ","Đại Mỗ","Long Biên","Bồ Đề","Việt Hưng","Phúc Lợi","Hà Đông","Dương Nội","Yên Nghĩa","Phú Lương","Kiến Hưng","Thanh Liệt"];
+    const phuongXaHCM = ['Phường Sài Gòn','Phường Tân Định','Phường Bến Thành','Phường Cầu Ông Lãnh','Phường Bàn Cờ','Phường Xuân Hòa','Phường Nhiêu Lộc','Phường Xóm Chiếu','Phường Khánh Hội','Phường Vĩnh Hội','Phường Chợ Quán','Phường An Đông','Phường Chợ Lớn','Phường Bình Tây','Phường Bình Tiên','Phường Bình Phú','Phường Phú Lâm','Phường Tân Thuận','Phường Phú Thuận','Phường Tân Mỹ','Phường Tân Hưng','Phường Chánh Hưng','Phường Phú Định','Phường Bình Đông','Phường Diên Hồng','Phường Vườn Lài','Phường Hòa Hưng','Phường Minh Phụng','Phường Bình Thới','Phường Hòa Bình','Phường Phú Thọ','Phường Đông Hưng Thuận','Phường Trung Mỹ Tây','Phường Tân Thới Hiệp','Phường Thới An','Phường An Phú Đông','Phường An Lạc','Phường Bình Tân','Phường Tân Tạo','Phường Bình Trị Đông','Phường Bình Hưng Hòa','Phường Gia Định','Phường Bình Thạnh','Phường Bình Lợi Trung','Phường Thạnh Mỹ Tây','Phường Bình Quới','Phường Hạnh Thông','Phường An Nhơn','Phường Gò Vấp','Phường An Hội Đông','Phường Thông Tây Hội','Phường An Hội Tây','Phường Đức Nhuận','Phường Cầu Kiệu','Phường Phú Nhuận','Phường Tân Sơn Hòa','Phường Tân Sơn Nhất','Phường Tân Hòa','Phường Bảy Hiền','Phường Tân Bình','Phường Tân Sơn','Phường Tây Thạnh','Phường Tân Sơn Nhì','Phường Phú Thọ Hòa','Phường Tân Phú','Phường Phú Thạnh','Phường Hiệp Bình','Phường Thủ Đức','Phường Tam Bình','Phường Linh Xuân','Phường Tăng Nhơn Phú','Phường Long Bình','Phường Long Phước','Phường Long Trường','Phường Cát Lái','Phường Bình Trưng','Phường Phước Long','Phường An Khánh'];
 
+    function initLeafletMap() {
+        const defaultLat = 21.0285;
+        const defaultLng = 105.8542;
+        
+        map = L.map('map-selection').setView([defaultLat, defaultLng], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap'
+            attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
+        updateMarker(defaultLat, defaultLng);
+
         map.on('click', function(e) {
-            const { lat, lng } = e.latlng;
-            if (marker) map.removeLayer(marker);
-            marker = L.marker([lat, lng]).addTo(map);
-            document.getElementById("lat").value = lat;
-            document.getElementById("lng").value = lng;
+            updateMarker(e.latlng.lat, e.latlng.lng);
         });
     }
 
-    async function add() {
-        const token = localStorage.getItem('token');
-        const vi_do = document.getElementById("lat").value;
-        const kinh_do = document.getElementById("lng").value;
+    function updateMarker(lat, lng) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+        document.getElementById("lat").value = lat;
+        document.getElementById("lng").value = lng;
 
-        if(!vi_do || !kinh_do) {
-            alert("⚠️ Vui lòng chọn vị trí phòng trọ trên bản đồ trước khi đăng!");
+        marker.on('dragend', function() {
+            const pos = marker.getLatLng();
+            document.getElementById("lat").value = pos.lat;
+            document.getElementById("lng").value = pos.lng;
+        });
+    }
+
+    // HÀM NHẢY BẢN ĐỒ MỚI (Sử dụng Fetch API - Nominatim)
+    async function updateMapFromAddress() {
+        const diaChi = document.getElementById("dia_chi").value;
+        const thanhPhoSelect = document.getElementById("thanh_pho");
+        const thanhPhoText = thanhPhoSelect.options[thanhPhoSelect.selectedIndex].text;
+
+        if (thanhPhoSelect.value === "") return;
+
+        const query = diaChi ? `${diaChi}, ${thanhPhoText}, Việt Nam` : `${thanhPhoText}, Việt Nam`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+
+        try {
+            const response = await fetch(url);
+            const results = await response.json();
+
+            if (results && results.length > 0) {
+                const lat = parseFloat(results[0].lat);
+                const lon = parseFloat(results[0].lon);
+                
+                map.flyTo([lat, lon], diaChi ? 16 : 12);
+                updateMarker(lat, lon);
+            }
+        } catch (error) {
+            console.error("Lỗi tìm kiếm bản đồ:", error);
+        }
+    }
+
+    function loadPhuongXa() {
+        const thanhPho = document.getElementById('thanh_pho').value;
+        const phuongXaSelect = document.getElementById('phuong_xa');
+        phuongXaSelect.innerHTML = '<option value="">Chọn phường xã</option>';
+        
+        let data = [];
+        if (thanhPho === 'Hà Nội') data = phuongXaHaNoi;
+        else if (thanhPho === 'Hồ Chí Minh') data = phuongXaHCM;
+
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            phuongXaSelect.appendChild(option);
+        });
+    }
+
+    initLeafletMap();
+
+    async function add() {
+        // 1. Lấy Token từ localStorage (Bạn phải lưu token này khi đăng nhập thành công)
+        const token = localStorage.getItem('token'); 
+        
+        if (!token) {
+            alert("Vui lòng đăng nhập để thực hiện chức năng này!");
             return;
         }
 
         const formData = new FormData();
-        formData.append("tieu_de", document.getElementById("tieu_de").value);
-        formData.append("gia_tien", document.getElementById("gia_tien").value);
-        formData.append("dien_tich", document.getElementById("dien_tich").value);
-        formData.append("dia_chi", document.getElementById("dia_chi").value);
-        formData.append("phuong_xa", document.getElementById("phuong_xa").value);
-        formData.append("thanh_pho", document.getElementById("thanh_pho").value);
-        formData.append("mo_ta", document.getElementById("mo_ta").value);
-        formData.append("quy_dinh", document.getElementById("quy_dinh").value);
-        formData.append("ghi_chu", document.getElementById("ghi_chu").value);
+        formData.append('tieu_de', document.getElementById('tieu_de').value);
+        formData.append('dia_chi', document.getElementById('dia_chi').value);
+        formData.append('thanh_pho', document.getElementById('thanh_pho').value);
+        formData.append('phuong_xa', document.getElementById('phuong_xa').value);
+        formData.append('gia_tien', document.getElementById('gia_tien').value);
+        formData.append('dien_tich', document.getElementById('dien_tich').value);
+        formData.append('mo_ta', document.getElementById('mo_ta').value);
+        formData.append('vi_do', document.getElementById('lat').value);
+        formData.append('kinh_do', document.getElementById('lng').value);
 
-        const files = document.getElementById("images").files;
-        for (let i = 0; i < files.length; i++) {
-            formData.append("images", files[i]);
-        }
-
-        const checkboxes = document.querySelectorAll('.noi-that:checked');
-        const noiThatIds = [];
-        checkboxes.forEach(cb => {
-            noiThatIds.push(cb.value);
-        });
-        
-        if (noiThatIds.length > 0) {
-            formData.append("noi_that_ids", JSON.stringify(noiThatIds));
+        const imageFiles = document.getElementById('images').files;
+        for (let i = 0; i < imageFiles.length; i++) {
+            formData.append('images', imageFiles[i]);
         }
 
         try {
-            const res = await fetch("http://localhost:3000/phongtro", {
-                method: "POST",
-                headers: { Authorization: "Bearer " + token },
-                body: formData
+            // 2. Sửa lại URL thành '/phongtro' để khớp với server.js
+            const response = await fetch('/phongtro', { 
+                method: 'POST',
+                headers: {
+                    // 3. Gửi kèm Token để qua được authMiddleware
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData 
             });
-            const data = await res.json();
+
+            // Kiểm tra nếu lỗi xác thực (401 hoặc 403)
+            if (response.status === 401 || response.status === 403) {
+                alert("Phiên đăng nhập hết hạn hoặc không có quyền!");
+                return;
+            }
+
+            const result = await response.json();
+            alert(result.message || "Đăng phòng thành công!");
             
-            if(res.ok) {
-                alert("🎉 Chúc mừng! Phòng trọ của bạn đã được đăng thành công.");
-                location.href = "quanlyphong.html";
-            } else {
-                alert("❌ Lỗi: " + data.message);
+            if (response.ok) {
+                window.location.href = "index.html"; 
             }
         } catch (error) {
-            console.error("Lỗi:", error);
-            alert("⚠️ Có lỗi xảy ra. Vui lòng kiểm tra lại kết nối mạng!");
+            console.error("Lỗi kết nối:", error);
+            alert("Không thể kết nối đến máy chủ.");
         }
     }
-
-    // Hàm load phường xã theo thành phố
-    function loadPhuongXa() {
-        const thanhPho = document.getElementById('thanh_pho').value;
-        const phuongXaSelect = document.getElementById('phuong_xa');
-        
-        // Xóa các option cũ
-        phuongXaSelect.innerHTML = '<option value="">Chọn phường xã</option>';
-        
-        // Danh sách phường xã theo thành phố
-        const phuongXaData = {
-            'Ha Noi': ['Ba Đình', 'Hoàn Kiếm', 'Hai Bà Trưng', 'Đống Đa', 'Tây Hồ', 'Cầu Giấy', 'Thanh Xuân', 'Hoàng Mai', 'Long Biên', 'Nam Từ Liêm', 'Bắc Từ Liêm', 'Hà Đông', 'Sơn Tây', 'Ba Vì', 'Phúc Thọ', 'Đan Phượng', 'Hoài Đức', 'Quốc Oai', 'Thạch Thất', 'Chương Mỹ', 'Thanh Oai', 'Mỹ Đức', 'Ứng Hòa', 'Thanh Trì', 'Gia Lâm'],
-            'Hai Phong': ['Hồng Bàng', 'Lê Chân', 'Ngô Quyền', 'Hải An', 'Kiến An', 'Đồ Sơn', 'Dương Kinh', 'An Dương', 'An Lão', 'Kiến Thụy', 'Thủy Nguyên', 'Tiên Lãng', 'Vĩnh Bảo', 'Cát Hải', 'Bạch Long Vĩ'],
-            'Ho Chi Minh': ['Quận 1', 'Quận 2', 'Quận 3', 'Quận 4', 'Quận 5', 'Quận 6', 'Quận 7', 'Quận 8', 'Quận 9', 'Quận 10', 'Quận 11', 'Quận 12', 'Bình Thạnh', 'Gò Vấp', 'Phú Nhuận', 'Tân Bình', 'Tân Phú', 'Thủ Đức', 'Bình Tân', 'Bình Chánh', 'Củ Chi', 'Hóc Môn', 'Nhà Bè', 'Cần Giờ']
-        };
-
-        if (phuongXaData[thanhPho]) {
-            phuongXaData[thanhPho].forEach(phuong => {
-                const option = document.createElement('option');
-                option.value = phuong;
-                option.textContent = phuong;
-                phuongXaSelect.appendChild(option);
-            });
-        }
-    }
-
-    initLeafletMap();
 </script>
 
 </body>

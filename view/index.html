@@ -1041,28 +1041,27 @@
         if(!token) return;
 
         try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
+            const payload = JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1]))));
             const authArea = document.getElementById("auth-area");
 
             authArea.innerHTML = `
-                <span style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important; font-weight: 600; margin-right: 15px; color: white;">
+                <span style="font-weight: 600; margin-right: 15px; color: white;">
                     <i class="fas fa-user-circle"></i> Chào, ${payload.ho_ten || 'Bạn'} 👋
                 </span>
+
                 ${payload.role === "chu_tro" ? `
                     <a href="dangphong.html"><i class="fas fa-plus-circle"></i> Đăng phòng</a>
-                    <a href="quanlyphong.html"><i class="fas fa-tasks"></i> Quản lý</a>
-                    <div class="notification-badge">
-                        <a href="notifications.html"><i class="fas fa-bell"></i> Thông báo</a>
-                        <span class="badge hidden" id="notification-count">0</span>
-                    </div>
+                    <a href="quanlyphong.html"><i class="fas fa-list"></i> Quản lý</a>
                 ` : `
-                    <div class="notification-badge">
-                        <a href="notifications.html"><i class="fas fa-bell"></i> Thông báo</a>
-                        <span class="badge hidden" id="notification-count">0</span>
-                    </div>
                     <a href="my-rooms.html"><i class="fas fa-home"></i> Phòng của tôi</a>
                 `}
-                <a href="#" onclick="logout()" style="background: rgba(239, 68, 68, 0.8); border-color: rgba(239, 68, 68, 0.9);">
+
+                <a href="notifications.html" class="nav-btn notification">
+                    <i class="fas fa-bell"></i> Thông báo
+                    <span class="badge" id="notification-count">0</span>
+                </a>
+
+                <a href="#" onclick="logout()" style="background: rgba(239, 68, 68, 0.8);">
                     <i class="fas fa-sign-out-alt"></i> Đăng xuất
                 </a>
             `;
@@ -1162,16 +1161,36 @@
             }
 
             for (const r of data) {
-                let imgSrc = "https://via.placeholder.com/400x300/667eea/ffffff?text=Chưa+có+ảnh";
-                try {
-                    const resImg = await fetch(`http://localhost:3000/phongtro/${r.id}/hinhanh`);
-                    const images = await resImg.json();
-                    if(images.length > 0) {
-                        imgSrc = "http://localhost:3000" + images[0].duong_dan_anh;
-                    }
-                } catch (imgErr) {
-                    console.error("Lỗi tải ảnh:", imgErr);
+let imgSrc = "https://via.placeholder.com/400x300/667eea/ffffff?text=" + encodeURIComponent("Chưa có ảnh");
+
+try {
+    const resImg = await fetch(`http://localhost:3000/phongtro/${r.id}/hinhanh`);
+    const images = await resImg.json();
+
+    if (images.length > 0) {
+                let path = images[0].duong_dan_anh;
+
+                // FIX path: Đảm bảo đường dẫn luôn bắt đầu bằng /uploads
+                if (!path.startsWith('/uploads')) {
+                    path = '/uploads/' + path;
                 }
+
+                // Gán địa chỉ server
+                imgSrc = "http://localhost:3000" + path;
+            }
+        } catch (imgErr) {
+            console.error("Lỗi tải ảnh:", imgErr);
+        }
+
+        // Khi render chuỗi HTML cho thẻ <img>, hãy thêm onerror để an toàn
+        // Giả sử đây là đoạn bạn tạo HTML cho danh sách phòng trọ:
+        const html = `
+            <div class="room-item">
+                <img src="${imgSrc}" 
+                    onerror="this.src='https://placehold.co/600x400?text=Loi+Anh'" 
+                    style="width:100%; height:200px; object-fit:cover; border-radius:8px;">
+                </div>
+        `;
 
                 let statusClass = '';
                 let statusText = '';

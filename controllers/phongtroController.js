@@ -6,77 +6,50 @@ const db = require("../config/db");
 GET /phongtro
 ================================ */
 exports.getAllPhongTro = async (req, res) => {
-  const {
-    keyword,
-    gia_min,
-    gia_max,
-    thanh_pho,
-    phuong_xa,
-    sort, // Thêm tham số sort ở đây (ví dụ: 'asc' hoặc 'desc')
-    noi_that, // Thêm tham số noi_that để lọc theo nội thất
-    trang_thai, // Thêm tham số trang_thai để lọc theo trạng thái
-    page = 1,
-    limit = 10
-  } = req.query;
+  const { keyword, gia_min, gia_max, thanh_pho, phuong_xa, sort, noi_that, trang_thai, page = 1, limit = 10 } = req.query;
 
+  // 1. Thêm CONCAT để đường dẫn ảnh đúng và dùng GROUP BY để tránh trùng lặp
   let sql = `
-    SELECT DISTINCT pt.* 
-    FROM phong_tro pt
-    LEFT JOIN phong_noi_that pnt ON pt.id = pnt.phong_id
-    LEFT JOIN noi_that nt ON pnt.noi_that_id = nt.id
-    WHERE 1=1
+      SELECT pt.*, 
+      (SELECT CONCAT('/uploads/', duong_dan_anh) FROM hinh_anh_phong WHERE phong_id = pt.id LIMIT 1) AS hinh_anh
+      FROM phong_tro pt
+      LEFT JOIN phong_noi_that pnt ON pt.id = pnt.phong_id
+      LEFT JOIN noi_that nt ON pnt.noi_that_id = nt.id
+      WHERE 1=1
   `;
   let params = [];
 
-  // 1. Phần lọc (Filter) - Giữ nguyên
   if (keyword) {
     sql += " AND (pt.tieu_de LIKE ? OR pt.dia_chi LIKE ?)";
     params.push(`%${keyword}%`, `%${keyword}%`);
   }
-  if (gia_min) {
-    sql += " AND pt.gia_tien >= ?";
-    params.push(gia_min);
-  }
-  if (gia_max) {
-    sql += " AND pt.gia_tien <= ?";
-    params.push(gia_max);
-  }
-  if (thanh_pho) {
-    sql += " AND pt.thanh_pho = ?";
-    params.push(thanh_pho);
-  }
-  if (phuong_xa) {
-    sql += " AND pt.phuong_xa = ?";
-    params.push(phuong_xa);
-  }
+  // Ép kiểu Number để tránh lỗi so sánh chuỗi trong SQL
+  if (gia_min) { sql += " AND pt.gia_tien >= ?"; params.push(Number(gia_min)); }
+  if (gia_max) { sql += " AND pt.gia_tien <= ?"; params.push(Number(gia_max)); }
+  if (thanh_pho) { sql += " AND pt.thanh_pho = ?"; params.push(thanh_pho); }
+  if (phuong_xa) { sql += " AND pt.phuong_xa = ?"; params.push(phuong_xa); }
 
-  // 2. Phần lọc nội thất - THÊM MỚI
   if (noi_that) {
     const noiThatArray = noi_that.split(',').map(item => item.trim());
     if (noiThatArray.length > 0) {
-      sql += " AND nt.ten_noi_that IN (?)";
-      params.push(noiThatArray);
+      const placeholders = noiThatArray.map(() => "?").join(",");
+      sql += ` AND nt.ten_noi_that IN (${placeholders})`;
+      params.push(...noiThatArray);
     }
   }
 
-  // 3. Phần lọc trạng thái - THÊM MỚI
-  if (trang_thai) {
+  if (trang_thai && trang_thai !== 'all') {
     sql += " AND pt.trang_thai = ?";
     params.push(trang_thai);
   }
 
-  // 4. Phần Sắp xếp (Sorting) - THÊM MỚI
-  // Quan trọng: ORDER BY phải đứng sau WHERE và trước LIMIT
-  if (sort === 'asc') {
-    sql += " ORDER BY pt.gia_tien ASC";
-  } else if (sort === 'desc') {
-    sql += " ORDER BY pt.gia_tien DESC";
-  } else {
-    // Mặc định sắp xếp theo tin mới nhất nếu không chọn sort giá
-    sql += " ORDER BY pt.ngay_dang DESC"; 
-  }
+  // 2. Chốt Group By trước khi Sort/Limit
+  sql += " GROUP BY pt.id";
 
-  // 5. Phần Phân trang (Pagination)
+  if (sort === 'asc') sql += " ORDER BY pt.gia_tien ASC";
+  else if (sort === 'desc') sql += " ORDER BY pt.gia_tien DESC";
+  else sql += " ORDER BY pt.ngay_dang DESC"; 
+
   const offset = (parseInt(page) - 1) * parseInt(limit);
   sql += " LIMIT ? OFFSET ?";
   params.push(parseInt(limit), parseInt(offset));
@@ -85,7 +58,8 @@ exports.getAllPhongTro = async (req, res) => {
     const [result] = await db.query(sql, params);
     res.json(result);
   } catch (err) {
-    return res.status(500).json(err);
+    console.error(err);
+    return res.status(500).json({ error: "Lỗi truy vấn dữ liệu" });
   }
 };
 
@@ -147,7 +121,13 @@ exports.getHinhAnh = async (req, res) => {
 
   try {
     const [result] = await db.query(sql, [id]);
-    res.json(result);
+
+    const images = result.map(img => ({
+      ...img,
+      duong_dan_anh: '/uploads/' + img.duong_dan_anh
+    }));
+
+    res.json(images);
   } catch (err) {
     return res.status(500).json(err);
   }
@@ -196,22 +176,23 @@ exports.createPhongTro = async (req, res) => {
         noi_that_ids, quy_dinh, ghi_chu
     } = req.body;
 
-    // 2.5 Kiểm tra dữ liệu bắt buộc (Sử dụng console log để debug nếu cần)
+    // 2.5 Kiểm tra dữ liệu bắt buộc
     if (!tieu_de || !gia_tien || !dia_chi) {
-        console.error("DEBUG: Thiếu thông tin đăng phòng:", req.body);
-        return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin bắt buộc (Tiêu đề, Giá tiền, Địa chỉ)" });
+        return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin bắt buộc" });
     }
 
+    // SỬA: Thêm vi_do, kinh_do vào câu lệnh SQL
     const sqlPhong = `
         INSERT INTO phong_tro
-        (chu_phong_id, tieu_de, dia_chi, phuong_xa, thanh_pho, gia_tien, dien_tich, mo_ta, quy_dinh, ghi_chu)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (chu_phong_id, tieu_de, dia_chi, phuong_xa, thanh_pho, gia_tien, dien_tich, mo_ta, quy_dinh, ghi_chu, vi_do, kinh_do)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     try {
         const [result] = await db.query(sqlPhong, [
             chu_phong_id, tieu_de, dia_chi, phuong_xa, thanh_pho,
-            gia_tien, dien_tich, mo_ta, quy_dinh || null, ghi_chu || null
+            gia_tien, dien_tich, mo_ta, quy_dinh || null, ghi_chu || null,
+            vi_do || null, kinh_do || null // Thêm ở đây
         ]);
 
         const phong_id = result.insertId;
@@ -219,46 +200,39 @@ exports.createPhongTro = async (req, res) => {
         // ===== XỬ LÝ ẢNH (Bulk Insert) =====
         if (req.files && req.files.length > 0) {
             const valuesAnh = req.files.map(file => [phong_id, file.filename]);
-
-            const sqlAnh = `
-                INSERT INTO hinh_anh_phong (phong_id, duong_dan_anh)
-                VALUES ?
-            `;
-
-            await db.query(sqlAnh, [valuesAnh]);
+            const sqlAnh = `INSERT INTO hinh_anh_phong (phong_id, duong_dan_anh) VALUES ?`;
+            
+            // SỬA: Bọc valuesAnh trong một mảng [] nữa
+            await db.query(sqlAnh, [valuesAnh]); 
         }
 
         // ===== XỬ LÝ NỘI THẤT (Bulk Insert) =====
-        // Sửa lỗi ReferenceError bằng cách kiểm tra biến an toàn
         if (noi_that_ids) {
-            let finalIds;
-            if (typeof noi_that_ids === 'string') {
-                try {
-                    finalIds = JSON.parse(noi_that_ids);
-                } catch (e) {
-                    console.error("Lỗi parse noi_that_ids:", e);
-                    finalIds = [];
-                }
-            } else {
-                finalIds = Array.isArray(noi_that_ids) ? noi_that_ids : [noi_that_ids];
+            let finalIds = [];
+            try {
+                // Nếu là string (từ FormData gửi lên thường là string) thì parse, không thì giữ nguyên
+                finalIds = typeof noi_that_ids === 'string' ? JSON.parse(noi_that_ids) : noi_that_ids;
+                if (!Array.isArray(finalIds)) finalIds = [finalIds];
+            } catch (e) {
+                console.error("Lỗi xử lý nội thất:", e);
             }
             
             if (finalIds.length > 0) {
                 const sqlNoiThat = "INSERT INTO phong_noi_that (phong_id, noi_that_id) VALUES ?";
                 const valuesNT = finalIds.map(id => [phong_id, id]);
 
+                // SỬA: Bọc valuesNT trong một mảng [] nữa
                 await db.query(sqlNoiThat, [valuesNT]);
             }
         }
 
-        // 3. Trả về kết quả thành công cho Frontend
         res.json({
             message: "Đăng phòng thành công",
             phong_id: phong_id
         });
     } catch (err) {
-        console.error("Lỗi SQL chèn phòng:", err);
-        return res.status(500).json({ message: "Lỗi lưu thông tin phòng", error: err });
+        console.error("Lỗi hệ thống:", err);
+        return res.status(500).json({ message: "Lỗi lưu thông tin phòng", error: err.message });
     }
 };
 
@@ -269,6 +243,7 @@ exports.createPhongTro = async (req, res) => {
 DELETE /phongtro/:id
 ================================ */
 exports.deletePhongTro = async (req, res) => {
+  // Kiểm tra quyền (giả sử req.user.role được set từ middleware)
   if (req.user.role !== "chu_tro") {
     return res.status(403).json({ message: "Chỉ chủ trọ được xóa" });
   }
@@ -277,43 +252,46 @@ exports.deletePhongTro = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    // BƯỚC 1: Lấy danh sách đường dẫn ảnh từ DB trước khi xóa dữ liệu
-    const getImagesSql = "SELECT duong_dan_anh FROM hinh_anh_phong WHERE phong_id = ?";
-    const [images] = await db.query(getImagesSql, [id]);
+    // BƯỚC 1: Lấy danh sách tên file ảnh từ DB trước khi mọi thứ bị xóa
+    // Đảm bảo tên cột là 'duong_dan_anh' và 'phong_id' khớp với DB của bạn
+    const [images] = await db.query(
+      "SELECT duong_dan_anh FROM hinh_anh_phong WHERE phong_id = ?", 
+      [id]
+    );
 
-    // BƯỚC 2: Xóa phòng trong Database
-    // (Lưu ý: Nếu DB có khóa ngoại ON DELETE CASCADE thì ảnh trong DB sẽ tự mất)
+    // BƯỚC 2: Xóa trong Database
+    // Nếu bạn chưa cài ON DELETE CASCADE, hãy chạy lệnh xóa ảnh trong DB trước:
+    // await db.query("DELETE FROM hinh_anh_phong WHERE phong_id = ?", [id]);
+
     const deleteSql = "DELETE FROM phong_tro WHERE id = ? AND chu_phong_id = ?";
     const [result] = await db.query(deleteSql, [id, userId]);
 
     if (result.affectedRows === 0) {
-      return res.status(403).json({ message: "Không có quyền xóa hoặc phòng không tồn tại" });
+      return res.status(404).json({ message: "Không tìm thấy phòng hoặc bạn không có quyền xóa" });
     }
 
-    // BƯỚC 3: Xóa các file ảnh thực tế trong thư mục uploads
+    // BƯỚC 3: Xóa file vật lý trên ổ cứng
     if (images && images.length > 0) {
       images.forEach(img => {
-        // Xử lý đường dẫn: Xóa dấu "/" ở đầu nếu có để path.join hoạt động đúng
-        const cleanPath = img.duong_dan_anh.startsWith('/') ? img.duong_dan_anh.slice(1) : img.duong_dan_anh;
-        
-        // Tạo đường dẫn tuyệt đối đến file
-        const filePath = path.join(__dirname, "..", cleanPath);
+        // Giả sử ảnh lưu trong thư mục: /public/uploads/ hoặc /uploads/
+        // Bạn cần điều chỉnh đường dẫn '..' cho đúng với cấu trúc thư mục của mình
+        const fileName = img.duong_dan_anh; 
+        const filePath = path.join(__dirname, "..", "public", "uploads", fileName);
 
-        // Kiểm tra xem file có tồn tại trên ổ cứng không rồi mới xóa
         if (fs.existsSync(filePath)) {
-          try {
-            fs.unlinkSync(filePath); // Lệnh xóa file vật lý
-            console.log("Đã xóa file:", filePath);
-          } catch (fileErr) {
-            console.error("Lỗi khi xóa file thực tế:", fileErr);
-          }
+          fs.unlink(filePath, (err) => {
+            if (err) console.error("Lỗi xóa file:", fileName, err);
+            else console.log("Đã xóa file vật lý:", fileName);
+          });
         }
       });
     }
 
-    res.json({ message: "Xóa phòng và toàn bộ ảnh thành công" });
+    res.json({ message: "Đã xóa phòng và các hình ảnh liên quan thành công!" });
+
   } catch (err) {
-    return res.status(500).json(err);
+    console.error("Lỗi khi xóa phòng:", err);
+    return res.status(500).json({ message: "Lỗi máy chủ nội bộ", error: err.message });
   }
 };
 /* ================================
@@ -322,67 +300,77 @@ PUT /phongtro/:id
 ================================ */
 exports.updatePhongTro = async (req, res) => {
   const id = req.params.id;
-  const userId = req.user.id; // ID này lấy từ Token (JWT) sau khi qua middleware xác thực
+  const userId = req.user.id; 
 
-  // 1. Lấy đầy đủ các trường (bao gồm cả mô tả và tọa độ bản đồ nếu có)
+  // 1. Lấy dữ liệu từ req.body
+  // Lưu ý: Client gửi 'quan_huyen', nên ta hứng đúng tên đó để tránh undefined
   const {
     tieu_de,
     dia_chi,
-    phuong_xa,
+    quan_huyen, 
     thanh_pho,
     gia_tien,
     dien_tich,
     mo_ta,
     vi_do,
-    kinh_do
+    kinh_do,
+    trang_thai
   } = req.body;
 
-  // 2. Kiểm tra dữ liệu bắt buộc (Tránh trường hợp gửi dữ liệu rỗng làm hỏng DB)
+  // 2. Kiểm tra dữ liệu bắt buộc
   if (!tieu_de || !gia_tien || !dia_chi) {
     return res.status(400).json({ message: "Vui lòng nhập đầy đủ Tiêu đề, Giá tiền và Địa chỉ." });
   }
 
-  // 3. Câu lệnh SQL có cơ chế bảo mật kép
-  // Điều kiện WHERE id=? AND chu_phong_id=? đảm bảo:
-  // - Đúng phòng cần sửa
-  // - Người đang đăng nhập (userId) PHẢI là chủ của phòng đó
-  const sql = `
-    UPDATE phong_tro 
-    SET tieu_de=?, dia_chi=?, phuong_xa=?, thanh_pho=?, 
-        gia_tien=?, dien_tich=?, mo_ta=?, vi_do=?, kinh_do=?
-    WHERE id=? AND chu_phong_id=?
-  `;
-
-  const values = [
-    tieu_de,
-    dia_chi,
-    phuong_xa,
-    thanh_pho,
-    gia_tien,
-    dien_tich,
-    mo_ta || null,
-    vi_do || null,
-    kinh_do || null,
-    id,
-    userId
-  ];
-
   try {
+    // 3. Xử lý cập nhật thông tin cơ bản
+    const sql = `
+      UPDATE phong_tro 
+      SET tieu_de=?, dia_chi=?, phuong_xa=?, thanh_pho=?, 
+          gia_tien=?, dien_tich=?, mo_ta=?, vi_do=?, kinh_do=?, trang_thai=?
+      WHERE id=? AND chu_phong_id=?
+    `;
+
+    const values = [
+      tieu_de,
+      dia_chi,
+      quan_huyen, // Khớp với name 'quan_huyen' từ FormData
+      thanh_pho,
+      gia_tien,
+      dien_tich,
+      mo_ta || null,
+      vi_do || null,
+      kinh_do || null,
+      trang_thai || 'con_trong',
+      id,
+      userId
+    ];
+
     const [result] = await db.query(sql, values);
 
-    // 4. Kiểm tra kết quả thực thi
-    // Nếu affectedRows = 0, có nghĩa là:
-    // Hoặc ID phòng không tồn tại, hoặc chu_phong_id trong DB không khớp với userId từ Token
     if (result.affectedRows === 0) {
       return res.status(403).json({ 
         message: "Bạn không có quyền chỉnh sửa phòng này hoặc phòng không tồn tại." 
       });
     }
 
+    // 4. Xử lý HÌNH ẢNH (Nếu người dùng có tải ảnh mới lên)
+    if (req.files && req.files.length > 0) {
+      // BƯỚC A: (Tùy chọn) Xóa ảnh cũ trong DB nếu bạn muốn thay thế hoàn toàn
+      // await db.query("DELETE FROM hinh_anh WHERE phong_tro_id = ?", [id]);
+
+      // BƯỚC B: Thêm ảnh mới vào bảng hinh_anh
+      const sqlHinhAnh = "INSERT INTO hinh_anh_phong (phong_id, duong_dan_anh) VALUES ?";
+      const valuesHinhAnh = req.files.map(file => [id, file.filename]);
+      
+      await db.query(sqlHinhAnh, [valuesHinhAnh]);
+    }
+
     res.json({ message: "Cập nhật thông tin phòng thành công!" });
+
   } catch (err) {
     console.error("Lỗi cập nhật SQL:", err);
-    return res.status(500).json({ message: "Lỗi máy chủ nội bộ", error: err });
+    return res.status(500).json({ message: "Lỗi máy chủ nội bộ", error: err.message });
   }
 };
 

@@ -163,3 +163,37 @@ a {
         height:180px;
     }
 }
+/* FIX NAV BUTTON */
+#auth-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#auth-area a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 140px;
+    height: 48px;
+    padding: 0 18px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* FIX BADGE */
+.notification {
+    position: relative;
+}
+
+.notification .badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+}
+
+/* FIX HOVER MƯỢT */
+#auth-area a:hover {
+    transform: translateY(-2px);
+}

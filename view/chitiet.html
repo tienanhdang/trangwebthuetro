@@ -914,9 +914,32 @@
         // Load ảnh
         const resImg = await fetch(`http://localhost:3000/phongtro/${id}/hinhanh`);
         const imgs = await resImg.json();
-        document.getElementById('image-list').innerHTML = imgs.length > 0 
-            ? imgs.map(i => `<img src="http://localhost:3000${i.duong_dan_anh}">`).join('')
-            : `<img src="https://via.placeholder.com/600x400?text=Chưa+có+hình+ảnh">`;
+let htmlImg = "";
+
+if (imgs.length > 0) {
+    htmlImg = imgs.map(i => {
+        let path = i.duong_dan_anh;
+
+        // FIX path
+        if (!path.startsWith('/uploads')) {
+            path = '/uploads/' + path;
+        }
+
+        const src = "http://localhost:3000" + path;
+
+        return `
+            <img src="${src}" 
+                 onerror="this.style.display='none'" 
+                 style="width:100%;border-radius:12px;margin-bottom:10px;">
+        `;
+    }).join('');
+} else {
+    htmlImg = `
+        <img src="https://placehold.co/600x400?text=No+Image">
+    `;
+}
+
+document.getElementById('image-list').innerHTML = htmlImg;
 
         initMap(r.vi_do || 21.0285, r.kinh_do || 105.8542);
         
@@ -925,8 +948,10 @@
         
         // Hiện form đánh giá nếu đã đăng nhập
         if (currentUserId) {
-            document.getElementById('form-danh-gia').style.display = 'block';
-        }
+            const form = document.getElementById('form-danh-gia');
+            if (form) {
+                form.style.display = 'block';
+            }        }
     }
 
     function initMap(lat, lng) {
