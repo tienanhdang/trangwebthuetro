@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Tìm kiếm Phòng Trọ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --glass: rgba(255, 255, 255, 0.2);
+            --glass-heavy: rgba(255, 255, 255, 0.95);
+            --shadow-soft: 0 10px 40px rgba(0,0,0,0.1);
+            --shadow-medium: 0 15px 50px rgba(0,0,0,0.15);
+            --shadow-hard: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            margin: 0;
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        header:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #auth-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #auth-area a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        #auth-area a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        #auth-area a:hover::before {
+            left: 100%;
+        }
+
+        #auth-area a:hover {
+            background: white;
+            color: #764ba2;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        /* Notification Badge */
+        .notification-badge {
+            position: relative;
+            display: inline-block;
+        }
+
+        .notification-badge .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        .notification-badge .badge.hidden {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Improve button rendering */
+        button, a[role="button"], .btn-search, .btn-filter, .btn-contact, .btn-details, #auth-area a, .footer-buttons a {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+
+        /* Improve text rendering globally */
+        h1, h2, h3, h4, h5, h6, p, span, div, a {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        .hero {
+            text-align: center;
+            padding: 100px 20px 60px;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 52px;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero p {
+            font-size: 20px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Search Box */
+        .search-container {
+            max-width: 1200px;
+            margin: 0 auto 60px;
+            padding: 0 20px;
+        }
+
+        .search-box {
+            background: var(--glass-heavy);
+            padding: 40px;
+            border-radius: 30px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            box-shadow: var(--shadow-hard);
+            align-items: center;
+            animation: fadeIn 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-gradient);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            animation: slideInLeft 0.6s ease-out;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+            animation: slideInRight 0.6s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 14px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 10px 15px;
+            border-radius: 25px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+        }
+
+        .filter-group {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            margin-top: 15px;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 15px;
+            border-radius: 25px;
+            color: #333;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .filter-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .filter-item input[type="checkbox"] {
+            accent-color: #667eea;
+            transform: scale(1.3);
+        }
+
+        .search-box input, .search-box select {
+            padding: 18px 22px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #333;
+            width: 100%;
+            box-sizing: border-box;
+            background: white;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .search-box input:focus, .search-box select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .search-box input::placeholder {
+            color: #a0aec0;
+        }
+
+        .btn-search {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 18px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        .btn-search::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-search:hover::before {
+            left: 100%;
+        }
+
+        .btn-search:hover {
+            filter: brightness(1.1);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-filter {
+            background: white;
+            color: #333;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            padding: 14px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        .btn-filter:hover {
+            background: white;
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-filter i {
+            color: #667eea;
+        }
+
+        .filter-dropdown {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            border: 2px solid #e2e8f0;
+            box-shadow: var(--shadow-medium);
+            margin-bottom: 25px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Container & Cards */
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            padding-bottom: 80px;
+        }
+
+        h2.section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        #list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 35px;
+            padding: 0 20px;
+        }
+
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-soft);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card:hover {
+            transform: translateY(-15px);
+            box-shadow: var(--shadow-hard);
+        }
+
+        .card-footer {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-contact, .btn-details {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        .btn-contact {
+            background: var(--success-gradient);
+            color: white;
+            border: none;
+        }
+
+        .btn-contact:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-details {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+        }
+
+        .btn-details:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .card img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .card:hover img {
+            transform: scale(1.05);
+        }
+
+        .card-content {
+            padding: 25px;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 12px;
+            display: block;
+            line-height: 1.4;
+        }
+
+        .card-price {
+            font-size: 22px;
+            color: #e53e3e;
+            font-weight: 800;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .card-location {
+            font-size: 14px;
+            color: #718096;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-location i {
+            color: #667eea;
+        }
+
+        .card-status {
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            margin-top: 10px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .status-con-trong {
+            background: linear-gradient(135deg, #d1f2eb 0%, #a7f3d0 100%);
+            color: #065f46;
+        }
+
+        .status-o-ghep {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+        }
+
+        .status-da-thue {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+        }
+
+        .loading-text {
+            text-align: center;
+            grid-column: 1/-1;
+            font-size: 20px;
+            color: white;
+            padding: 60px 20px;
+        }
+
+        .loading-text i {
+            font-size: 40px;
+            margin-bottom: 20px;
+            display: block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            padding: 60px 20px;
+            text-align: center;
+            margin-top: 60px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        footer h3 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            color: white;
+            font-weight: 700;
+        }
+
+        .footer-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .footer-buttons a {
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        .footer-buttons a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .footer-buttons a:hover::before {
+            left: 100%;
+        }
+
+        .footer-buttons a:first-child {
+            background: var(--success-gradient);
+            color: white;
+            box-shadow: 0 10px 30px rgba(17, 153, 142, 0.4);
+        }
+
+        .footer-buttons a:last-child {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .footer-buttons a:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+
+        footer p {
+            color: rgba(255,255,255,0.8);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .search-box {
+                padding: 25px;
+                grid-template-columns: 1fr;
+            }
+
+            .search-row {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            #list {
+                grid-template-columns: 1fr;
+                padding: 0 15px;
+            }
+
+            .footer-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .footer-buttons a {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.7);
+        }
+        /* ===== FIX ĐỒNG NHẤT INPUT / SELECT ===== */
+.search-row input,
+.search-row select,
+.filter-row select {
+    padding: 16px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    font-size: 15px;
+    background: white;
+    transition: 0.3s;
+    width: 100%;
+}
+
+.search-row input:focus,
+.search-row select:focus,
+.filter-row select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+}
+
+/* ===== FIX GRID CHO ĐẸP HÀNG ===== */
+.search-row {
+    margin-top: 15px;
+}
+
+.search-row > div {
+    display: flex;
+    gap: 15px;
+}
+
+/* ===== FIX NÚT FILTER CHO GIỐNG BUTTON ===== */
+.btn-filter {
+    padding: 14px 22px;
+    border-radius: 30px;
+    border: none;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+}
+
+/* ===== LABEL "Bộ lọc" ===== */
+.filter-label {
+    background: transparent;
+    border: none;
+    animation: none;
+}
+
+/* ===== DROPDOWN FILTER ===== */
+.filter-dropdown {
+    border-radius: 20px;
+    padding: 20px;
+}
+
+/* ===== FIX ITEM FILTER ===== */
+.filter-item {
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 14px;
+}
+
+/* ===== FIX SELECT SẮP XẾP ===== */
+#sort {
+    height: 52px;
+}
+    </style>
+</head>
+<body>
+
+<div class="bg-animation"></div>
+
+<header>
+    <div class="logo">🏠 PHONGTRO</div>
+            <div id="auth-area">
+                <a href="my-rooms.html" id="my-rooms-link" style="display: none;">🏠 Phòng của tôi</a>
+                <a href="dangnhap.html">Đăng nhập</a>
+                <a href="dangky.html">Đăng ký</a>
+            </div>
+</header>
+
+<div class="hero">
+    <h1><i class="fas fa-home"></i> Khám phá không gian sống mới</h1>
+    <p>Tìm kiếm phòng trọ nhanh chóng, an toàn và hiện đại với hàng nghìn lựa chọn</p>
+</div>
+
+<div class="search-container">
+    <div class="search-box">
+        <input id="search" placeholder="🔍 Tên phòng, khu vực, địa chỉ...">
+        <button class="btn-search" onclick="loadRooms()">
+            <i class="fas fa-search"></i> TÌM KIẾM
+        </button>
+    </div>
+
+    <div class="search-row">
+        <div>
+            <select id="thanh_pho" onchange="loadPhuongXa()">
+                <option value="">🏙️ Chọn thành phố</option>
+                <option value="Ha Noi">Hà Nội</option>
+                <option value="Hai Phong">Hải Phòng</option>
+                <option value="Ho Chi Minh">Thành phố Hồ Chí Minh</option>
+            </select>
+        </div>
+        <div>
+            <select id="phuong_xa" onchange="loadRooms()">
+                <option value="">🏘️ Chọn phường xã</option>
+            </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <input id="gia_min" type="number" placeholder="💰 Giá thấp nhất (VNĐ)">
+            <input id="gia_max" type="number" placeholder="💰 Giá cao nhất (VNĐ)">
+        </div>
+    </div>
+
+    <div class="filter-row">
+        <select id="sort" onchange="loadRooms()">
+            <option value="">🕒 Sắp xếp: Mới nhất</option>
+            <option value="asc">📈 Giá: Thấp → Cao</option>
+            <option value="desc">📉 Giá: Cao → Thấp</option>
+        </select>
+        
+        <div class="filter-section">
+            <span class="filter-label"><i class="fas fa-filter"></i> Bộ lọc:</span>
+            <button class="btn-filter" onclick="toggleFilter('trang_thai')">
+                <i class="fas fa-home"></i> Trạng thái
+            </button>
+            <button class="btn-filter" onclick="toggleFilter('noi_that')">
+                <i class="fas fa-couch"></i> Nội thất
+            </button>
+        </div>
+    </div>
+
+    <!-- Bộ lọc Trạng thái -->
+    <div id="filter-trang_thai" class="filter-dropdown" style="display: none;">
+        <span style="font-weight:700; margin-right:15px; color:#333; font-size: 16px;">
+            <i class="fas fa-home"></i> Trạng thái:
+        </span>
+        <label class="filter-item">
+            <input type="radio" name="trang_thai" value="con_trong" onchange="loadRooms()"> 
+            <span>🟢 Còn trống</span>
+        </label>
+        <label class="filter-item">
+            <input type="radio" name="trang_thai" value="o_ghep" onchange="loadRooms()"> 
+            <span>🟡 Ở ghép</span>
+        </label>
+        <label class="filter-item">
+            <input type="radio" name="trang_thai" value="da_thue" onchange="loadRooms()"> 
+            <span>🔴 Đã thuê</span>
+        </label>
+        <label class="filter-item">
+            <input type="radio" name="trang_thai" value="all" onchange="loadRooms()" checked> 
+            <span>📋 Tất cả</span>
+        </label>
+    </div>
+
+    <!-- Bộ lọc Nội thất -->
+    <div id="filter-noi_that" class="filter-dropdown" style="display: none;">
+        <span style="font-weight:700; margin-right:15px; color:#333; font-size: 16px;">
+            <i class="fas fa-couch"></i> Nội thất:
+        </span>
+        <label class="filter-item">
+            <input type="checkbox" value="Dieu hoa" onchange="loadRooms()"> 
+            <span>❄️ Điều hòa</span>
+        </label>
+        <label class="filter-item">
+            <input type="checkbox" value="Giuong" onchange="loadRooms()"> 
+            <span>🛏️ Giường</span>
+        </label>
+        <label class="filter-item">
+            <input type="checkbox" value="Tu quan ao" onchange="loadRooms()"> 
+            <span>👕 Tủ quần áo</span>
+        </label>
+        <label class="filter-item">
+            <input type="checkbox" value="May giat" onchange="loadRooms()"> 
+            <span>🧺 Máy giặt</span>
+        </label>
+        <label class="filter-item">
+            <input type="checkbox" value="Bep" onchange="loadRooms()"> 
+            <span>🍳 Bếp</span>
+        </label>
+        <label class="filter-item">
+            <input type="checkbox" value="Binh nong lanh" onchange="loadRooms()"> 
+            <span>🔥 Bình nóng lạnh</span>
+        </label>
+        <label class="filter-item">
+            <input type="checkbox" value="Ve sinh khep kin" onchange="loadRooms()"> 
+            <span>🚿 Vệ sinh khép kín</span>
+        </label>
+    </div>
+</div>
+
+<div class="container">
+    <h2 class="section-title">✨ Danh sách phòng trọ nổi bật</h2>
+    <div id="list">
+        <p class="loading-text">
+            <i class="fas fa-spinner"></i>
+            Đang tải dữ liệu phòng trọ...
+        </p>
+    </div>
+</div>
+
+<footer>
+    <h3><i class="fas fa-headset"></i> Cần hỗ trợ? Liên hệ ngay!</h3>
+    <div class="footer-buttons" id="footer-contact">
+        <a href="tel:0987654321" id="footer-phone">
+            <i class="fas fa-phone-alt"></i>
+            Gọi ngay: **** *** ***
+        </a>
+        <a href="https://zalo.me/0912345678" id="footer-zalo">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" style="width: 20px; height: 20px; margin-right: 8px;">
+            Zalo: **** *** ***
+        </a>
+    </div>
+    <p>
+        <i class="fas fa-clock"></i> Hỗ trợ 24/7 - Tư vấn tận tình - Miễn phí hoàn toàn
+    </p>
+</footer>
+
+<script>
+    // Kiểm tra trạng thái đăng nhập
+    function checkLogin(){
+        const token = localStorage.getItem("token");
+        if(!token) return;
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const authArea = document.getElementById("auth-area");
+
+            authArea.innerHTML = `
+                <span style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important; font-weight: 600; margin-right: 15px; color: white;">
+                    <i class="fas fa-user-circle"></i> Chào, ${payload.ho_ten || 'Bạn'} 👋
+                </span>
+                ${payload.role === "chu_tro" ? `
+                    <a href="dangphong.html"><i class="fas fa-plus-circle"></i> Đăng phòng</a>
+                    <a href="quanlyphong.html"><i class="fas fa-tasks"></i> Quản lý</a>
+                    <div class="notification-badge">
+                        <a href="notifications.html"><i class="fas fa-bell"></i> Thông báo</a>
+                        <span class="badge hidden" id="notification-count">0</span>
+                    </div>
+                ` : `
+                    <div class="notification-badge">
+                        <a href="notifications.html"><i class="fas fa-bell"></i> Thông báo</a>
+                        <span class="badge hidden" id="notification-count">0</span>
+                    </div>
+                    <a href="my-rooms.html"><i class="fas fa-home"></i> Phòng của tôi</a>
+                `}
+                <a href="#" onclick="logout()" style="background: rgba(239, 68, 68, 0.8); border-color: rgba(239, 68, 68, 0.9);">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </a>
+            `;
+
+            // Load số thông báo chưa đọc
+            loadUnreadNotifications();
+
+            // Hiện số điện thoại thật khi đăng nhập
+            document.getElementById('footer-phone').innerHTML = `
+                <i class="fas fa-phone-alt"></i>
+                Gọi ngay: 0987 654 321
+            `;
+            document.getElementById('footer-zalo').innerHTML = `
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" style="width: 20px; height: 20px; margin-right: 8px;">
+                Zalo: 0912 345 678
+            `;
+        } catch (e) {
+            console.error("Token không hợp lệ");
+        }
+    }
+
+    function logout(){
+        if(confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+            localStorage.removeItem("token");
+            location.reload();
+        }
+    }
+
+    // Load số thông báo chưa đọc
+    async function loadUnreadNotifications() {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            const res = await fetch('/api/notifications', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (!res.ok) return;
+
+            const notifications = await res.json();
+            const unreadCount = notifications.filter(n => !n.is_read).length;
+
+            const badge = document.getElementById('notification-count');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        } catch (error) {
+            console.error('Lỗi tải thông báo:', error);
+        }
+    }
+
+    // Load danh sách phòng
+    async function loadRooms() {
+        const listContainer = document.getElementById('list');
+        listContainer.innerHTML = `
+            <p class="loading-text">
+                <i class="fas fa-spinner"></i>
+                Đang tải dữ liệu...
+            </p>
+        `;
+
+        try {
+            const keyword = document.getElementById('search').value;
+            const gia_min = document.getElementById('gia_min').value;
+            const gia_max = document.getElementById('gia_max').value;
+            const thanh_pho = document.getElementById('thanh_pho').value;
+            const sort = document.getElementById('sort').value;
+
+            const checkedItems = Array.from(document.querySelectorAll('.filter-item input[type="checkbox"]:checked'))
+                                    .map(cb => cb.value);
+
+            const selectedStatus = document.querySelector('input[name="trang_thai"]:checked').value;
+
+            let noiThatQuery = checkedItems.length > 0 ? '&noi_that=' + encodeURIComponent(checkedItems.join(',')) : '';
+            let trangThaiQuery = selectedStatus !== 'all' ? '&trang_thai=' + selectedStatus : '';
+
+            const phuong_xa = document.getElementById('phuong_xa').value;
+            const url = `http://localhost:3000/phongtro?keyword=${keyword}&gia_min=${gia_min}&gia_max=${gia_max}&thanh_pho=${thanh_pho}&phuong_xa=${encodeURIComponent(phuong_xa)}&sort=${sort}${noiThatQuery}${trangThaiQuery}`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            listContainer.innerHTML = '';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                listContainer.innerHTML = `
+                    <p class="loading-text">
+                        <i class="fas fa-search"></i>
+                        Không tìm thấy phòng nào phù hợp với tiêu chí tìm kiếm.
+                    </p>
+                `;
+                return;
+            }
+
+            for (const r of data) {
+                let imgSrc = "https://via.placeholder.com/400x300/667eea/ffffff?text=Chưa+có+ảnh";
+                try {
+                    const resImg = await fetch(`http://localhost:3000/phongtro/${r.id}/hinhanh`);
+                    const images = await resImg.json();
+                    if(images.length > 0) {
+                        imgSrc = "http://localhost:3000" + images[0].duong_dan_anh;
+                    }
+                } catch (imgErr) {
+                    console.error("Lỗi tải ảnh:", imgErr);
+                }
+
+                let statusClass = '';
+                let statusText = '';
+                if (r.trang_thai === 'con_trong') {
+                    statusClass = 'status-con-trong';
+                    statusText = '🟢 Còn trống';
+                } else if (r.trang_thai === 'o_ghep') {
+                    statusClass = 'status-o-ghep';
+                    statusText = '🟡 Ở ghép';
+                } else if (r.trang_thai === 'da_thue') {
+                    statusClass = 'status-da-thue';
+                    statusText = '🔴 Đã thuê';
+                } else {
+                    statusClass = 'status-con-trong';
+                    statusText = '❓ Không xác định';
+                }
+
+                listContainer.innerHTML += `
+                    <a href="chitiet.html?id=${r.id}" class="card-link">
+                        <div class="card">
+                            <img src="${imgSrc}" alt="${r.tieu_de}" loading="lazy">
+                            <div class="card-content">
+                                <span class="card-title">${r.tieu_de}</span>
+                                <span class="card-price">${Number(r.gia_tien).toLocaleString()} VNĐ/tháng</span>
+                                <div class="card-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    ${r.dia_chi}
+                                </div>
+                                <span class="card-status ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="card-footer">
+                                <button class="btn-details">
+                                    <i class="fas fa-eye"></i> Xem chi tiết
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }
+        } catch (err) {
+            console.error("Lỗi:", err);
+            listContainer.innerHTML = `
+                <p class="loading-text">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Không thể kết nối tới server. Vui lòng thử lại sau.
+                </p>
+            `;
+        }
+    }
+
+    // Toggle filter
+    function toggleFilter(type) {
+        const trangThaiDropdown = document.getElementById('filter-trang_thai');
+        const noiThatDropdown = document.getElementById('filter-noi_that');
+        
+        if (type === 'trang_thai') {
+            trangThaiDropdown.style.display = trangThaiDropdown.style.display === 'none' ? 'block' : 'none';
+            noiThatDropdown.style.display = 'none';
+        } else if (type === 'noi_that') {
+            noiThatDropdown.style.display = noiThatDropdown.style.display === 'none' ? 'block' : 'none';
+            trangThaiDropdown.style.display = 'none';
+        }
+    }
+
+    // Load phường xã
+    function loadPhuongXa() {
+        const thanhPho = document.getElementById('thanh_pho').value;
+        const phuongXaSelect = document.getElementById('phuong_xa');
+        
+        phuongXaSelect.innerHTML = '<option value="">🏘️ Chọn phường xã</option>';
+        
+        const phuongXaData = {
+            'Ha Noi': ['Ba Đình', 'Hoàn Kiếm', 'Hai Bà Trưng', 'Đống Đa', 'Tây Hồ', 'Cầu Giấy', 'Thanh Xuân', 'Hoàng Mai', 'Long Biên', 'Nam Từ Liêm', 'Bắc Từ Liêm', 'Hà Đông', 'Sơn Tây', 'Ba Vì', 'Phúc Thọ', 'Đan Phượng', 'Hoài Đức', 'Quốc Oai', 'Thạch Thất', 'Chương Mỹ', 'Thanh Oai', 'Mỹ Đức', 'Ứng Hòa', 'Thanh Trì', 'Gia Lâm'],
+            'Hai Phong': ['Hồng Bàng', 'Lê Chân', 'Ngô Quyền', 'Hải An', 'Kiến An', 'Đồ Sơn', 'Dương Kinh', 'An Dương', 'An Lão', 'Kiến Thụy', 'Thủy Nguyên', 'Tiên Lãng', 'Vĩnh Bảo', 'Cát Hải', 'Bạch Long Vĩ'],
+            'Ho Chi Minh': ['Quận 1', 'Quận 2', 'Quận 3', 'Quận 4', 'Quận 5', 'Quận 6', 'Quận 7', 'Quận 8', 'Quận 9', 'Quận 10', 'Quận 11', 'Quận 12', 'Bình Thạnh', 'Gò Vấp', 'Phú Nhuận', 'Tân Bình', 'Tân Phú', 'Thủ Đức', 'Bình Tân', 'Bình Chánh', 'Củ Chi', 'Hóc Môn', 'Nhà Bè', 'Cần Giờ']
+        };
+
+        if (phuongXaData[thanhPho]) {
+            phuongXaData[thanhPho].forEach(phuong => {
+                const option = document.createElement('option');
+                option.value = phuong;
+                option.textContent = phuong;
+                phuongXaSelect.appendChild(option);
+            });
+        }
+        
+        loadRooms();
+    }
+
+    // Khởi tạo
+    loadRooms();
+    checkLogin();
+</script>
+
+<!-- Socket.io -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    // Khởi tạo Socket.io
+    let socket;
+
+    function initSocket() {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            
+            socket = io();
+            
+            // Join user room
+            socket.emit('join_user_room', payload.id);
+            
+            // Lắng nghe thông báo mới
+            socket.on('new_notification', (data) => {
+                console.log('Nhận thông báo mới:', data);
+                loadUnreadNotifications();
+            });
+            
+        } catch (error) {
+            console.error('Lỗi khởi tạo Socket.io:', error);
+        }
+    }
+
+    // Khởi tạo Socket.io sau khi check login
+    setTimeout(initSocket, 1000);
+</script>
+
+</body>
+</html>

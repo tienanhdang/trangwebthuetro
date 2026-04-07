@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - Hệ thống Phòng Trọ</title>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --primary-hover: #764ba2;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --muted-color: #666;
+            --border-color: #e0e0e0;
+            --online-color: #4caf50;
+            --typing-color: #9c27b0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 70px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 350px;
+            background: white;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-box {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .conversation-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .conversation-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .conversation-item.active {
+            background-color: #e3f2fd;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            position: relative;
+        }
+
+        .avatar.online::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--online-color);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .conversation-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .conversation-preview {
+            font-size: 12px;
+            color: var(--muted-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-time {
+            font-size: 11px;
+            color: var(--muted-color);
+            text-align: right;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-partner-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-partner-name {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .chat-partner-status {
+            font-size: 12px;
+            color: var(--muted-color);
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: #f8f9fa;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.own {
+            align-self: flex-end;
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.other {
+            align-self: flex-start;
+            background-color: white;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .message-time {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--muted-color);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-5px); opacity: 1; }
+        }
+
+        .input-area {
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            background: white;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .message-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: 200px;
+                order: 2;
+            }
+            
+            .chat-area {
+                order: 1;
+                height: calc(100vh - 270px);
+            }
+
+            .message {
+                max-width: 85%;
+            }
+        }
+
+        /* Scrollbar styling */
+        .conversations-list::-webkit-scrollbar,
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .conversations-list::-webkit-scrollbar-track,
+        .messages-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .conversations-list::-webkit-scrollbar-thumb,
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .conversations-list::-webkit-scrollbar-thumb:hover,
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-title">💬 Chat Messenger</div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="location.href='index.html'">🏠 Trang chủ</button>
+            <button class="btn btn-secondary" onclick="location.href='my-rooms.html'">🏠 Phòng của tôi</button>
+            <button class="btn btn-primary" onclick="location.href='index.html'">➕ Tìm phòng mới</button>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="search-box">
+                <input type="text" class="search-input" id="search-conversations" placeholder="🔍 Tìm kiếm cuộc trò chuyện...">
+            </div>
+            <div class="conversations-list" id="conversations-list">
+                <!-- Danh sách cuộc trò chuyện sẽ được load ở đây -->
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-partner-info">
+                    <div class="avatar" id="current-avatar">?</div>
+                    <div>
+                        <div class="chat-partner-name" id="current-partner-name">Chọn một cuộc trò chuyện</div>
+                        <div class="chat-partner-status" id="current-partner-status">...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messages-container">
+                <div style="text-align: center; color: var(--muted-color); margin-top: 20px;">
+                    Chọn một cuộc trò chuyện để bắt đầu chat
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" class="message-input" id="message-input" placeholder="Nhập tin nhắn..." disabled>
+                <button class="send-btn" id="send-btn" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Khởi tạo các biến toàn cục
+        let socket;
+        let currentConversationId = null;
+        let currentPartnerId = null;
+        let currentPartnerName = '';
+        let typingTimer;
+        let isTyping = false;
+
+        // Khởi tạo ứng dụng
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kiểm tra đăng nhập
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Vui lòng đăng nhập để sử dụng chat');
+                window.location.href = 'dangnhap.html';
+                return;
+            }
+
+            // Khởi tạo Socket.io
+            socket = io();
+
+            // Lấy thông tin user từ token
+            const user = parseJWT(token);
+            
+            // Join user room
+            socket.emit('join_user_room', user.id);
+
+            // Load danh sách cuộc trò chuyện
+            loadConversations();
+
+            // Xử lý sự kiện gửi tin nhắn
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+
+            messageInput.addEventListener('input', () => {
+                if (currentConversationId) {
+                    handleTyping();
+                }
+            });
+
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            sendBtn.addEventListener('click', sendMessage);
+
+            // Xử lý sự kiện Socket.io
+            setupSocketEvents();
+
+            // Kiểm tra URL parameter để tự động chọn conversation
+            const urlParams = new URLSearchParams(window.location.search);
+            const conversationId = urlParams.get('conversation');
+            if (conversationId) {
+                // Đợi loadConversations hoàn thành rồi chọn conversation
+                setTimeout(() => {
+                    autoSelectConversation(conversationId);
+                }, 1000);
+            }
+        });
+
+        // Hàm parse JWT token
+        function parseJWT(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('Lỗi parse token:', e);
+                return null;
+            }
+        }
+
+        // Thiết lập các sự kiện Socket.io
+        function setupSocketEvents() {
+            socket.on('new_message', (data) => {
+                if (data.conversation_id === currentConversationId) {
+                    appendMessage(data);
+                    scrollToBottom();
+                } else {
+                    // Cập nhật preview trong danh sách cuộc trò chuyện
+                    updateConversationPreview(data.conversation_id, data.sender_name, data.content);
+                }
+            });
+
+            socket.on('user_typing', (data) => {
+                if (data.userId !== parseJWT(localStorage.getItem('token')).id) {
+                    showTypingIndicator(data.isTyping);
+                }
+            });
+
+            socket.on('new_notification', (data) => {
+                // Hiển thị thông báo (có thể dùng toast notification)
+                console.log('Thông báo mới:', data.message);
+                showNotification(data.message);
+            });
+        }
+
+        // Tự động chọn conversation từ URL parameter
+        function autoSelectConversation(conversationId) {
+            const conversationElement = document.querySelector(`[data-conversation-id="${conversationId}"]`);
+            if (conversationElement) {
+                conversationElement.click();
+            } else {
+                console.warn('Không tìm thấy conversation với ID:', conversationId);
+            }
+        }
+
+        // Load danh sách cuộc trò chuyện
+        async function loadConversations() {
+            try {
+                const response = await fetch('/api/chat/conversations', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Lỗi tải danh sách cuộc trò chuyện');
+                }
+
+                const conversations = await response.json();
+                renderConversations(conversations);
+            } catch (error) {
+                console.error('Lỗi:', error);
+                document.getElementById('conversations-list').innerHTML = '<p style="text-align: center; color: red;">Lỗi tải dữ liệu</p>';
+            }
+        }
+
+        // Render danh sách cuộc trò chuyện
+        function renderConversations(conversations) {
+            const container = document.getElementById('conversations-list');
+            container.innerHTML = '';
+
+            if (conversations.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--muted-color); padding: 20px;">Chưa có cuộc trò chuyện nào</p>';
+                return;
+            }
+
+            conversations.forEach(conv => {
+                const partnerName = conv.partner_name || 'Người dùng';
+                const lastMessage = conv.last_message || 'Chưa có tin nhắn';
+                const lastTime = conv.last_message_time ? formatTime(conv.last_message_time) : '';
+
+                const div = document.createElement('div');
+                div.className = 'conversation-item';
+                div.setAttribute('data-conversation-id', conv.id);
+                div.onclick = () => selectConversation(conv.id, conv.partner_name, conv.partner_avatar, conv.user1_id, conv.user2_id);
+                
+                div.innerHTML = `
+                    <div class="avatar" style="background-color: ${getAvatarColor(partnerName)}">
+                        ${getAvatarText(partnerName)}
+                    </div>
+                    <div class="conversation-info">
+                        <div class="conversation-name">${partnerName}</div>
+                        <div class="conversation-preview">${lastMessage}</div>
+                    </div>
+                    <div class="conversation-time">${lastTime}</div>
+                `;
+
+                container.appendChild(div);
+            });
+        }
+
+        // Chọn cuộc trò chuyện
+        function selectConversation(conversationId, partnerName, partnerAvatar, user1Id, user2Id) {
+            currentConversationId = conversationId;
+            currentPartnerName = partnerName;
+            
+            // Xác định ID của người bạn chat
+            const user = parseJWT(localStorage.getItem('token'));
+            currentPartnerId = user.id === user1Id ? user2Id : user1Id;
+
+            // Cập nhật giao diện
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            event.currentTarget.classList.add('active');
+
+            // Cập nhật header chat
+            document.getElementById('current-partner-name').textContent = partnerName;
+            document.getElementById('current-partner-status').textContent = 'Đang hoạt động';
+            
+            const avatar = document.getElementById('current-avatar');
+            avatar.textContent = getAvatarText(partnerName);
+            avatar.style.backgroundColor = getAvatarColor(partnerName);
+
+            // Kích hoạt input
+            document.getElementById('message-input').disabled = false;
+            document.getElementById('send-btn').disabled = false;
+            document.getElementById('message-input').focus();
+
+            // Load tin nhắn
+            loadMessages(conversationId);
+        }
+
+        // Load tin nhắn
+        async function loadMessages(conversationId) {
+            try {
+                const response = await fetch(`/api/chat/messages/${conversationId}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Lỗi tải tin nhắn');
+                }
+
+                const messages = await response.json();
+                renderMessages(messages);
+                scrollToBottom();
+            } catch (error) {
+                console.error('Lỗi:', error);
+                document.getElementById('messages-container').innerHTML = '<p style="text-align: center; color: red;">Lỗi tải tin nhắn</p>';
+            }
+        }
+
+        // Render tin nhắn
+        function renderMessages(messages) {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = '';
+
+            if (messages.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--muted-color); margin-top: 20px;">Chưa có tin nhắn nào</p>';
+                return;
+            }
+
+            messages.forEach(msg => {
+                appendMessage(msg);
+            });
+        }
+
+        // Thêm tin nhắn vào container
+        function appendMessage(msg) {
+            const container = document.getElementById('messages-container');
+            const user = parseJWT(localStorage.getItem('token'));
+            const isOwn = msg.sender_id === user.id;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isOwn ? 'own' : 'other'}`;
+            
+            messageDiv.innerHTML = `
+                <div>${msg.content}</div>
+                <div class="message-time">${formatTime(msg.created_at)}</div>
+            `;
+
+            container.appendChild(messageDiv);
+        }
+
+        // Gửi tin nhắn
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const content = input.value.trim();
+
+            if (!content || !currentConversationId) {
+                return;
+            }
+
+            // Hiển thị tin nhắn đang gửi
+            const user = parseJWT(localStorage.getItem('token'));
+            appendMessage({
+                content: content,
+                sender_id: user.id,
+                sender_name: user.ho_ten,
+                created_at: new Date().toISOString()
+            });
+
+            input.value = '';
+            scrollToBottom();
+
+            try {
+                const response = await fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        conversationId: currentConversationId,
+                        content: content
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Gửi tin nhắn thất bại');
+                }
+
+                // Cập nhật preview trong danh sách cuộc trò chuyện
+                updateConversationPreview(currentConversationId, user.ho_ten, content);
+            } catch (error) {
+                console.error('Lỗi:', error);
+                alert('Gửi tin nhắn thất bại');
+            }
+        }
+
+        // Xử lý typing indicator
+        function handleTyping() {
+            if (!isTyping) {
+                isTyping = true;
+                socket.emit('typing', {
+                    conversationId: currentConversationId,
+                    userId: parseJWT(localStorage.getItem('token')).id,
+                    isTyping: true
+                });
+            }
+
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                if (isTyping) {
+                    isTyping = false;
+                    socket.emit('typing', {
+                        conversationId: currentConversationId,
+                        userId: parseJWT(localStorage.getItem('token')).id,
+                        isTyping: false
+                    });
+                }
+            }, 1000);
+        }
+
+        // Hiển thị typing indicator
+        function showTypingIndicator(show) {
+            const indicator = document.getElementById('typing-indicator');
+            if (show) {
+                indicator.style.display = 'flex';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+
+        // Cập nhật preview cuộc trò chuyện
+        function updateConversationPreview(conversationId, senderName, content) {
+            // Cập nhật trong DOM nếu cần
+            const items = document.querySelectorAll('.conversation-item');
+            items.forEach(item => {
+                // Logic cập nhật preview (bỏ qua để đơn giản)
+            });
+        }
+
+        // Cuộn xuống cuối
+        function scrollToBottom() {
+            const container = document.getElementById('messages-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Format thời gian
+        function formatTime(timeString) {
+            const date = new Date(timeString);
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'Vừa xong';
+            if (minutes < 60) return `${minutes} phút`;
+            if (hours < 24) return `${hours} giờ`;
+            if (days < 7) return `${days} ngày`;
+            
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        // Tạo màu avatar ngẫu nhiên
+        function getAvatarColor(name) {
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7'];
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const index = Math.abs(hash) % colors.length;
+            return colors[index];
+        }
+
+        // Lấy chữ cái đầu tiên cho avatar
+        function getAvatarText(name) {
+            return name.charAt(0).toUpperCase();
+        }
+
+        // Hiển thị thông báo
+        function showNotification(message) {
+            // Có thể implement toast notification ở đây
+            console.log('Notification:', message);
+        }
+    </script>
+</body>
+</html>

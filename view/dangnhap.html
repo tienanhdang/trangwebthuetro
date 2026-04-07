@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập hệ thống</title>
+    <style>
+        /* Toàn bộ nền trang */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        /* Khung đăng nhập */
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        /* Ô nhập liệu */
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; /* Giữ padding không làm tăng chiều rộng */
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Nút đăng nhập */
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Link đăng ký (nếu có) */
+        .footer-text {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .footer-text a {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>🔑 Đăng nhập</h2>
+    
+    <input id="ten_tai_khoan" type="text" placeholder="Tên tài khoản">
+    <input id="mat_khau" type="password" placeholder="Mật khẩu">
+    
+    <button onclick="login()">Đăng nhập ngay</button>
+
+    <div class="footer-text">
+        Chưa có tài khoản? <a href="dangky.html">Đăng ký tại đây</a>
+    </div>
+</div>
+
+<script>
+    async function login(){
+        const ten_tai_khoan = document.getElementById("ten_tai_khoan").value;
+        const mat_khau = document.getElementById("mat_khau").value;
+
+        console.log("Đang thử đăng nhập với:", ten_tai_khoan);
+
+        if(!ten_tai_khoan || !mat_khau) {
+            alert("Vui lòng nhập đầy đủ thông tin!");
+            return;
+        }
+
+        try {
+            console.log("Gửi request đến server...");
+            const res = await fetch('http://localhost:3000/users/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ ten_tai_khoan, mat_khau })
+            });
+
+            console.log("Response status:", res.status);
+            const data = await res.json();
+            console.log("Response data:", data);
+
+            if(res.ok){
+                console.log("Đăng nhập thành công! Token:", data.token);
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('username', ten_tai_khoan);
+                
+                // Lưu role để phân quyền hiển thị
+                if(data.user && data.user.role) {
+                    localStorage.setItem('userRole', data.user.role);
+                    console.log("User role:", data.user.role);
+                }
+                
+                alert("🎉 Đăng nhập thành công!");
+                window.location.href = "index.html";
+            } else {
+                console.log("Đăng nhập thất bại:", data.message);
+                alert("❌ " + data.message);
+            }
+        } catch (error) {
+            console.error("Lỗi kết nối:", error);
+            alert("Lỗi kết nối đến server! Vui lòng kiểm tra:\n1. Server có đang chạy không?\n2. Có lỗi trong Console không? (Nhấn F12 để xem)");
+        }
+    }
+
+    // Cho phép nhấn Enter để đăng nhập
+    document.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            login();
+        }
+    });
+</script>
+
+</body>
+</html>

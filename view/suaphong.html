@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sửa thông tin phòng trọ</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Nav Bar */
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-container {
+            background: var(--glass);
+            padding: 40px;
+            border-radius: 24px;
+            max-width: 800px;
+            margin: 40px auto;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+
+        h2 { font-size: 28px; color: #2d3436; margin-bottom: 25px; text-align: center; }
+        h3 { font-size: 18px; color: #4a5568; margin: 25px 0 15px; border-left: 4px solid #667eea; padding-left: 10px; }
+
+        label { display: block; font-size: 14px; font-weight: 600; color: #718096; margin-bottom: 5px; }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: 2px solid #edf2f7;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: 0.3s;
+            outline: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Map Section */
+        #map-selection {
+            width: 100%;
+            height: 350px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            border: 3px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Button Group */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-save {
+            padding: 16px 30px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3);
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(39, 174, 96, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-cancel {
+            padding: 16px 30px;
+            background: #7f8c8d;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(127, 140, 141, 0.3);
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(127, 140, 141, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .hint { font-size: 13px; color: #718096; margin-top: -10px; margin-bottom: 15px; display: block; }
+        
+        .status-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="nav-bar">
+    <a href="index.html">🏠 Trang chủ</a>
+    <a href="quanlyphong.html">⬅️ Quay lại quản lý</a>
+</div>
+
+<div class="form-container">
+    <h2>✏️ Sửa thông tin phòng trọ</h2>
+    <p style="text-align: center; color: #718096; margin-top: -15px; margin-bottom: 30px;">Cập nhật thông tin phòng trọ của bạn.</p>
+
+    <label>Tiêu đề bài viết</label>
+    <input id="tieu_de" placeholder="Ví dụ: Phòng trọ khép kín, gần Đại học Bách Khoa...">
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+            <label>Giá tiền (VNĐ/tháng)</label>
+            <input id="gia_tien" type="number" placeholder="Ví dụ: 3500000">
+        </div>
+        <div>
+            <label>Diện tích (m²)</label>
+            <input id="dien_tich" type="number" placeholder="Ví dụ: 25">
+        </div>
+    </div>
+
+    <label>Địa chỉ cụ thể</label>
+    <input id="dia_chi" placeholder="Số nhà, tên đường, phường/xã...">
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+            <label>Phường xã</label>
+            <select id="phuong_xa">
+                <option value="">Chọn phường xã</option>
+            </select>
+        </div>
+        <div>
+            <label>Thành phố</label>
+            <select id="thanh_pho" onchange="loadPhuongXa()">
+                <option value="">Chọn thành phố</option>
+                <option value="Ha Noi">Hà Nội</option>
+                <option value="Hai Phong">Hải Phòng</option>
+                <option value="Ho Chi Minh">Thành phố Hồ Chí Minh</option>
+            </select>
+        </div>
+    </div>
+
+    <label>Mô tả chi tiết</label>
+    <textarea id="mo_ta" placeholder="Mô tả về giờ giấc, điện nước, an ninh..." rows="5"></textarea>
+
+    <h3>🖼️ Hình ảnh phòng trọ</h3>
+    <span class="hint">Tải lên ảnh mới để thay thế ảnh cũ. Để trống nếu không muốn thay đổi ảnh.</span>
+    <input type="file" id="images" multiple accept="image/*">
+
+    <h3>🏠 Trạng thái phòng</h3>
+    <div class="status-section">
+        <select id="trang_thai">
+            <option value="con_trong">🟢 Còn trống</option>
+            <option value="o_ghep">🟡 Ở ghép</option>
+            <option value="da_thue">🔴 Đã thuê</option>
+        </select>
+    </div>
+
+    <h3>📍 Vị trí trên bản đồ</h3>
+    <span class="hint">Click chuột vào bản đồ để đánh dấu vị trí chính xác của phòng trọ.</span>
+    <div id="map-selection"></div>
+    
+    <input type="hidden" id="lat">
+    <input type="hidden" id="lng">
+
+    <div class="btn-group">
+        <button onclick="save()" class="btn-save">💾 Lưu thay đổi</button>
+        <button onclick="cancel()" class="btn-cancel">❌ Hủy bỏ</button>
+    </div>
+</div>
+
+<script>
+    let map, marker;
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+
+    function initLeafletMap() {
+        // Mặc định ở Hà Nội
+        map = L.map('map-selection').setView([21.0285, 105.8542], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        map.on('click', function(e) {
+            const { lat, lng } = e.latlng;
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lng]).addTo(map);
+            document.getElementById("lat").value = lat;
+            document.getElementById("lng").value = lng;
+        });
+    }
+
+    async function loadRoomData() {
+        const token = localStorage.getItem('token');
+        if(!token) { 
+            alert("Vui lòng đăng nhập để truy cập trang này!"); 
+            window.location.href = "dangnhap.html";
+            return; 
+        }
+
+        try {
+            const res = await fetch(`http://localhost:3000/phongtro/${id}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            
+            if(res.ok) {
+                // Điền dữ liệu vào form
+                document.getElementById("tieu_de").value = data.tieu_de || "";
+                document.getElementById("gia_tien").value = data.gia_tien || "";
+                document.getElementById("dien_tich").value = data.dien_tich || "";
+                document.getElementById("dia_chi").value = data.dia_chi || "";
+                document.getElementById("phuong_xa").value = data.quan_huyen || "";
+                document.getElementById("thanh_pho").value = data.thanh_pho || "";
+                document.getElementById("mo_ta").value = data.mo_ta || "";
+                document.getElementById("trang_thai").value = data.trang_thai || "con_trong";
+                
+                // Cập nhật vị trí bản đồ
+                if (data.vi_do && data.kinh_do) {
+                    const lat = parseFloat(data.vi_do);
+                    const lng = parseFloat(data.kinh_do);
+                    map.setView([lat, lng], 16);
+                    if (marker) map.removeLayer(marker);
+                    marker = L.marker([lat, lng]).addTo(map);
+                    document.getElementById("lat").value = lat;
+                    document.getElementById("lng").value = lng;
+                }
+            } else {
+                alert("❌ Không thể tải thông tin phòng. " + data.message);
+                window.location.href = "quanlyphong.html";
+            }
+        } catch (error) {
+            console.error("Lỗi:", error);
+            alert("⚠️ Có lỗi xảy ra. Vui lòng kiểm tra lại kết nối mạng!");
+        }
+    }
+
+    async function save() {
+        const token = localStorage.getItem('token');
+        const vi_do = document.getElementById("lat").value;
+        const kinh_do = document.getElementById("lng").value;
+
+        if(!vi_do || !kinh_do) {
+            alert("⚠️ Vui lòng chọn vị trí phòng trọ trên bản đồ trước khi lưu!");
+            return;
+        }
+
+        // Tạo FormData để gửi cả dữ liệu và ảnh
+        const formData = new FormData();
+        
+        // Thêm các trường thông tin vào FormData
+        formData.append("tieu_de", document.getElementById("tieu_de").value);
+        formData.append("gia_tien", document.getElementById("gia_tien").value);
+        formData.append("dien_tich", document.getElementById("dien_tich").value);
+        formData.append("dia_chi", document.getElementById("dia_chi").value);
+        formData.append("quan_huyen", document.getElementById("phuong_xa").value);
+        formData.append("thanh_pho", document.getElementById("thanh_pho").value);
+        formData.append("mo_ta", document.getElementById("mo_ta").value);
+        formData.append("vi_do", vi_do);
+        formData.append("kinh_do", kinh_do);
+        formData.append("trang_thai", document.getElementById("trang_thai").value);
+
+        // Thêm ảnh nếu có
+        const files = document.getElementById("images").files;
+        for (let i = 0; i < files.length; i++) {
+            formData.append("images", files[i]);
+        }
+
+        try {
+            const res = await fetch(`http://localhost:3000/phongtro/${id}`, {
+                method: "PUT",
+                headers: { 
+                    'Authorization': 'Bearer ' + token
+                    // Không cần thiết lập 'Content-Type' vì FormData sẽ tự động tạo boundary
+                },
+                body: formData
+            });
+            const data = await res.json();
+            
+            if(res.ok) {
+                alert("🎉 Chúc mừng! Thông tin phòng trọ đã được cập nhật thành công.");
+                window.location.href = "quanlyphong.html";
+            } else {
+                alert("❌ Lỗi: " + data.message);
+            }
+        } catch (error) {
+            console.error("Lỗi:", error);
+            alert("⚠️ Có lỗi xảy ra. Vui lòng kiểm tra lại kết nối mạng!");
+        }
+    }
+
+    function cancel() {
+        if (confirm("⚠️ Bạn có chắc chắn muốn hủy các thay đổi?")) {
+            window.location.href = "quanlyphong.html";
+        }
+    }
+
+    // Hàm load phường xã theo thành phố
+    function loadPhuongXa() {
+        const thanhPho = document.getElementById('thanh_pho').value;
+        const phuongXaSelect = document.getElementById('phuong_xa');
+        
+        // Xóa các option cũ
+        phuongXaSelect.innerHTML = '<option value="">Chọn phường xã</option>';
+        
+        // Danh sách phường xã theo thành phố
+        const phuongXaData = {
+            'Ha Noi': ['Ba Đình', 'Hoàn Kiếm', 'Hai Bà Trưng', 'Đống Đa', 'Tây Hồ', 'Cầu Giấy', 'Thanh Xuân', 'Hoàng Mai', 'Long Biên', 'Nam Từ Liêm', 'Bắc Từ Liêm', 'Hà Đông', 'Sơn Tây', 'Ba Vì', 'Phúc Thọ', 'Đan Phượng', 'Hoài Đức', 'Quốc Oai', 'Thạch Thất', 'Chương Mỹ', 'Thanh Oai', 'Mỹ Đức', 'Ứng Hòa', 'Thanh Trì', 'Gia Lâm'],
+            'Hai Phong': ['Hồng Bàng', 'Lê Chân', 'Ngô Quyền', 'Hải An', 'Kiến An', 'Đồ Sơn', 'Dương Kinh', 'An Dương', 'An Lão', 'Kiến Thụy', 'Thủy Nguyên', 'Tiên Lãng', 'Vĩnh Bảo', 'Cát Hải', 'Bạch Long Vĩ'],
+            'Ho Chi Minh': ['Quận 1', 'Quận 2', 'Quận 3', 'Quận 4', 'Quận 5', 'Quận 6', 'Quận 7', 'Quận 8', 'Quận 9', 'Quận 10', 'Quận 11', 'Quận 12', 'Bình Thạnh', 'Gò Vấp', 'Phú Nhuận', 'Tân Bình', 'Tân Phú', 'Thủ Đức', 'Bình Tân', 'Bình Chánh', 'Củ Chi', 'Hóc Môn', 'Nhà Bè', 'Cần Giờ']
+        };
+
+        if (phuongXaData[thanhPho]) {
+            phuongXaData[thanhPho].forEach(phuong => {
+                const option = document.createElement('option');
+                option.value = phuong;
+                option.textContent = phuong;
+                phuongXaSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Khởi tạo khi trang được tải
+    initLeafletMap();
+    loadRoomData();
+</script>
+
+</body>
+</html>

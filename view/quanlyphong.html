@@ -1,0 +1,334 @@
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quản lý phòng của tôi</title>
+        <style>
+            :root {
+                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                --danger-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+                --glass: rgba(255, 255, 255, 0.95);
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background-attachment: fixed;
+                margin: 0;
+                padding: 0;
+                color: #333;
+                min-height: 100vh;
+            }
+
+            /* Nav Bar */
+            .nav-bar {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                padding: 15px 30px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            .nav-bar a {
+                color: white;
+                text-decoration: none;
+                font-weight: bold;
+                font-size: 15px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .container {
+                max-width: 900px;
+                margin: 40px auto;
+                background: var(--glass);
+                padding: 40px;
+                border-radius: 24px;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            }
+
+            h2 {
+                font-size: 28px;
+                color: #2d3436;
+                margin-bottom: 30px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            /* Nút thêm mới */
+            .add-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--primary-gradient);
+                color: white;
+                padding: 12px 24px;
+                text-decoration: none;
+                border-radius: 12px;
+                font-weight: bold;
+                margin-bottom: 30px;
+                transition: 0.3s;
+                box-shadow: 0 8px 15px rgba(102, 126, 234, 0.3);
+            }
+            .add-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 20px rgba(102, 126, 234, 0.4);
+            }
+
+            /* Room Cards */
+            .room-card { 
+                display: flex; 
+                background: white;
+                margin-bottom: 20px; 
+                padding: 20px; 
+                border-radius: 18px; 
+                transition: 0.3s;
+                cursor: pointer; 
+                position: relative;
+                border: 1px solid #edf2f7;
+                align-items: center;
+            }
+            .room-card:hover { 
+                transform: scale(1.02);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                border-color: #667eea;
+            }
+
+            .room-card img { 
+                width: 160px; 
+                height: 120px; 
+                object-fit: cover; 
+                border-radius: 12px; 
+                margin-right: 20px; 
+            }
+
+            .room-info { flex-grow: 1; }
+            .room-info b { font-size: 20px; color: #2d3436; display: block; margin-bottom: 5px; }
+            .price { color: #e74c3c; font-weight: 800; font-size: 19px; display: block; margin-bottom: 5px; }
+            .room-info small { color: #636e72; font-size: 14px; }
+
+            /* Nút xóa */
+            .btn-delete { 
+                background: var(--danger-gradient);
+                color: white; 
+                border: none; 
+                padding: 10px 18px; 
+                border-radius: 10px; 
+                cursor: pointer; 
+                font-weight: bold;
+                transition: 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .btn-delete:hover { 
+                filter: brightness(1.1);
+                transform: scale(1.05);
+            }
+
+            /* Nút sửa */
+            .btn-edit { 
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white; 
+                border: none; 
+                padding: 10px 18px; 
+                border-radius: 10px; 
+                cursor: pointer; 
+                font-weight: bold;
+                transition: 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .btn-edit:hover { 
+                filter: brightness(1.1);
+                transform: scale(1.05);
+            }
+
+            hr { border: 0; border-top: 1px solid #eee; margin-bottom: 30px; }
+
+            /* Trạng thái trống */
+            .empty-state {
+                text-align: center;
+                padding: 40px;
+                color: #636e72;
+            }
+        </style>
+    </head>
+    <body>
+
+    <div class="nav-bar">
+        <a href="index.html">🏠 Trang chủ</a>
+    </div>
+
+    <div class="container">
+        <h2>🏠 Quản lý phòng trọ</h2>
+        
+        <a href="dangphong.html" class="add-btn">➕ Thêm phòng trọ mới</a>
+
+    <hr>
+
+    <div style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap;">
+
+        <!-- Trạng thái -->
+        <select id="filter-status" onchange="applyFilter()">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="con_trong">Còn trống</option>
+            <option value="da_thue">Đã thuê</option>
+        </select>
+
+        <!-- Sắp xếp giá -->
+        <select id="sort-price" onchange="applyFilter()">
+            <option value="none">Sắp xếp giá</option>
+            <option value="asc">Giá thấp → cao</option>
+            <option value="desc">Giá cao → thấp</option>
+        </select>
+
+    </div>
+
+    <!-- Nội thất -->
+    <div style="margin-bottom:20px;">
+<label><input type="checkbox" value="may_lanh" onchange="applyFilter()"> Điều hòa</label>
+<label><input type="checkbox" value="giuong" onchange="applyFilter()"> Giường</label>
+<label><input type="checkbox" value="tu" onchange="applyFilter()"> Tủ quần áo</label>
+<label><input type="checkbox" value="may_giat" onchange="applyFilter()"> Máy giặt</label>
+    </div>
+
+    <hr>
+        
+        <div id="rooms-list">
+            <p style="text-align: center; color: #667eea;">Đang tải danh sách phòng của bạn...</p>
+        </div>
+    </div>
+
+    <script>
+        let allRooms = [];
+    async function load() {
+        const token = localStorage.getItem('token');
+        if(!token) { 
+            alert("Vui lòng đăng nhập để truy cập trang này!"); 
+            window.location.href = "dangnhap.html";
+            return; 
+        }
+
+        try {
+            // Lấy danh sách tất cả phòng trọ (không giới hạn bởi chủ phòng)
+            const res = await fetch('http://localhost:3000/phongtro/my', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            allRooms = data;
+            applyFilter();
+        
+        } catch (err) {
+            console.error(err);
+            document.getElementById('rooms-list').innerHTML = "<p style='color:red; text-align:center;'>Không thể kết nối tới máy chủ.</p>";
+        }
+    }
+        
+    async function renderRooms(list) {
+    const container = document.getElementById('rooms-list');
+    container.innerHTML = "";
+
+    if (list.length === 0) {
+        container.innerHTML = "<p style='text-align:center;'>Không có phòng phù hợp</p>";
+        return;
+    }
+
+    for (const r of list) {
+        let imgSrc = "https://via.placeholder.com/150";
+
+        try {
+            const res = await fetch(`http://localhost:3000/phongtro/${r.id}/hinhanh`);
+            const images = await res.json();
+
+            if (images.length > 0) {
+                imgSrc = `http://localhost:3000${images[0].duong_dan_anh}`;
+            }
+        } catch (e) {}
+
+        container.innerHTML += `
+            <div class="room-card" onclick="location.href='chitiet.html?id=${r.id}'">
+                <img src="${imgSrc}">
+                <div class="room-info">
+                    <b>${r.tieu_de}</b>
+                    <span class="price">${Number(r.gia_tien).toLocaleString()} VNĐ</span>
+                    <small>📍 ${r.dia_chi}</small>
+                    <small>
+                        ${r.trang_thai === 'con_trong' ? '🟢 Còn trống' : '🔴 Đã thuê'}
+                    </small>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="event.stopPropagation(); edit(${r.id})" class="btn-edit">✏️ Sửa</button>
+                    <button onclick="event.stopPropagation(); del(${r.id})" class="btn-delete">🗑️</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+    function applyFilter() {
+
+        let filtered = [...allRooms];
+
+        const status = document.getElementById('filter-status').value;
+        if (status !== 'all') {
+            filtered = filtered.filter(r => r.trang_thai === status);
+        }
+
+        const checked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                            .map(cb => cb.value);
+
+        if (checked.length > 0) {
+            filtered = filtered.filter(r => {
+                if (!r.noi_that) return false;
+                return checked.every(item => (r.noi_that || "").toLowerCase().includes(item));
+            });
+        }
+
+        const sort = document.getElementById('sort-price').value;
+
+        if (sort === 'asc') {
+            filtered.sort((a, b) => a.gia_tien - b.gia_tien);
+        }
+
+        if (sort === 'desc') {
+            filtered.sort((a, b) => b.gia_tien - a.gia_tien);
+        }
+
+        renderRooms(filtered);
+    }
+
+        async function del(id) {
+            if (!confirm("⚠️ Lưu ý: Hành động này sẽ xóa vĩnh viễn bài đăng và tất cả hình ảnh liên quan. Bạn chắc chắn chứ?")) return;
+            
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`http://localhost:3000/phongtro/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if(res.ok) {
+                    alert("✅ Đã xóa bài đăng thành công!");
+                    load();
+                } else {
+                    alert("❌ Lỗi: " + data.message);
+                }
+            } catch (error) {
+                alert("❌ Có lỗi xảy ra khi xóa.");
+            }
+        }
+
+        function edit(id) {
+            // Chuyển hướng đến trang sửa phòng để chỉnh sửa thông tin
+            location.href = `suaphong.html?id=${id}`;
+        }
+
+        load();
+
+
+    </script>
+    </body>
+    </html>
