@@ -1035,53 +1035,60 @@
 </footer>
 
 <script>
+    
     // Kiểm tra trạng thái đăng nhập
-    function checkLogin(){
-        const token = localStorage.getItem("token");
-        if(!token) return;
+function checkLogin() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-        try {
-            const payload = JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1]))));
-            const authArea = document.getElementById("auth-area");
+    try {
+        const payload = JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1]))));
+        const authArea = document.getElementById("auth-area");
 
-            authArea.innerHTML = `
-                <span style="font-weight: 600; margin-right: 15px; color: white;">
-                    <i class="fas fa-user-circle"></i> Chào, ${payload.ho_ten || 'Bạn'} 👋
-                </span>
+        // Tạo chuỗi HTML cho các nút dựa trên Role
+        let roleButtons = "";
 
-                ${payload.role === "chu_tro" ? `
-                    <a href="dangphong.html"><i class="fas fa-plus-circle"></i> Đăng phòng</a>
-                    <a href="quanlyphong.html"><i class="fas fa-list"></i> Quản lý</a>
-                ` : `
-                    <a href="my-rooms.html"><i class="fas fa-home"></i> Phòng của tôi</a>
-                `}
-
-                <a href="notifications.html" class="nav-btn notification">
-                    <i class="fas fa-bell"></i> Thông báo
-                    <span class="badge" id="notification-count">0</span>
-                </a>
-
-                <a href="#" onclick="logout()" style="background: rgba(239, 68, 68, 0.8);">
-                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+        if (payload.role === "admin") {
+            // Nút dành riêng cho ADMIN
+            roleButtons = `
+                <a href="quanlytaikhoan.html" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <i class="fas fa-users-cog"></i> Quản lý tài khoản
                 </a>
             `;
-
-            // Load số thông báo chưa đọc
-            loadUnreadNotifications();
-
-            // Hiện số điện thoại thật khi đăng nhập
-            document.getElementById('footer-phone').innerHTML = `
-                <i class="fas fa-phone-alt"></i>
-                Gọi ngay: 0987 654 321
+        } else if (payload.role === "chu_tro") {
+            // Nút dành cho CHỦ TRỌ
+            roleButtons = `
+                <a href="dangphong.html"><i class="fas fa-plus-circle"></i> Đăng phòng</a>
+                <a href="quanlyphong.html"><i class="fas fa-list"></i> Quản lý</a>
             `;
-            document.getElementById('footer-zalo').innerHTML = `
-                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" style="width: 20px; height: 20px; margin-right: 8px;">
-                Zalo: 0912 345 678
-            `;
-        } catch (e) {
-            console.error("Token không hợp lệ");
+        } else {
+            // Nút dành cho NGƯỜI THUÊ
+            roleButtons = `<a href="my-rooms.html"><i class="fas fa-home"></i> Phòng của tôi</a>`;
         }
+
+        authArea.innerHTML = `
+            <span style="font-weight: 600; margin-right: 15px; color: white;">
+                <i class="fas fa-user-circle"></i> Chào, ${payload.ho_ten || 'Bạn'} 👋
+            </span>
+
+            ${roleButtons}
+
+            <a href="notifications.html" class="nav-btn notification">
+                <i class="fas fa-bell"></i> Thông báo
+                <span class="badge" id="notification-count">0</span>
+            </a>
+
+            <a href="#" onclick="logout()" style="background: rgba(239, 68, 68, 0.8);">
+                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+            </a>
+        `;
+
+        loadUnreadNotifications();
+        // Cập nhật thông tin footer nếu cần...
+    } catch (e) {
+        console.error("Lỗi giải mã token:", e);
     }
+}
 
     function logout(){
         if(confirm("Bạn có chắc chắn muốn đăng xuất?")) {

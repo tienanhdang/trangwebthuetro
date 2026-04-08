@@ -23,7 +23,10 @@ exports.register = async (req, res) => {
         // XỬ LÝ ROLE: Đảm bảo dữ liệu hợp lệ với Database
         // Nếu frontend không gửi hoặc gửi sai, mặc định gán là người thuê ('sinh_vien')
         let userRole = 'sinh_vien'; 
-        if (role === 'chu_tro' || role === 'sinh_vien') {
+
+
+        const validRoles = ['chu_tro', 'sinh_vien'];
+        if (validRoles.includes(role)) {
             userRole = role;
         }
 
@@ -94,5 +97,33 @@ exports.login = async (req, res) => {
     } catch (err) {
         console.error("Lỗi đăng nhập:", err);
         return res.status(500).json({ error: "Lỗi database" });
+    }
+};
+// Thêm vào cuối file controller của bạn
+// 3. LẤY DANH SÁCH TẤT CẢ TÀI KHOẢN (Chỉ dành cho Admin)
+exports.getAllUsers = async (req, res) => {
+    try {
+        const sql = "SELECT id, ho_ten, email, so_dien_thoai, ten_tai_khoan, role FROM nguoi_dung";
+        const [users] = await db.query(sql);
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Lỗi lấy danh sách user:", error);
+        res.status(500).json({ error: "Không thể lấy danh sách người dùng" });
+    }
+};
+
+// 4. XÓA TÀI KHOẢN BẤT KỲ (Chỉ dành cho Admin)
+exports.deleteUser = async (req, res) => {
+    const userId = req.params.id;
+    try {
+        // Không cho phép admin tự xóa chính mình (tùy chọn)
+        // if(userId == req.user.id) return res.status(400).json({message: "Bạn không thể tự xóa chính mình!"});
+
+        const sql = "DELETE FROM nguoi_dung WHERE id = ?";
+        await db.query(sql, [userId]);
+        res.status(200).json({ message: "Đã xóa tài khoản thành công!" });
+    } catch (error) {
+        console.error("Lỗi xóa user:", error);
+        res.status(500).json({ error: "Lỗi khi xóa tài khoản" });
     }
 };

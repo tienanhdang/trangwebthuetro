@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý người dùng - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --danger-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --glass: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            color: #333;
+        }
+
+        .admin-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--glass);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+
+        .header-section h2 {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-bar {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border-radius: 50px;
+            border: 2px solid #e2e8f0;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .search-bar input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102,126,234,0.2);
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+
+        /* Table Styling */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        thead tr {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 700;
+            color: #4a5568;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 15px;
+        }
+
+        tr:hover {
+            background-color: rgba(102, 126, 234, 0.02);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge-admin { background: #e0e7ff; color: #4338ca; }
+        .badge-user { background: #f0fdf4; color: #166534; }
+        .badge-locked { background: #fee2e2; color: #991b1b; }
+
+        /* Action Buttons */
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-lock {
+            background: var(--danger-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+        }
+
+        .btn-unlock {
+            background: var(--success-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i> Quay lại trang chủ</a>
+    
+    <div class="header-section">
+        <h2><i class="fas fa-users-cog"></i> Quản lý tài khoản</h2>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="userSearch" placeholder="Tìm tên, email..." onkeyup="filterUsers()">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>Người dùng</th>
+                    <th>Email / SĐT</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="userList">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const API_URL = 'http://localhost:3000/users'; 
+
+// 1. Hàm hiển thị danh sách người dùng
+async function renderUsers() {
+    const tbody = document.getElementById('userList');
+    
+    try {
+        // Gọi API từ Backend
+        const response = await fetch(`${API_URL}/admin/users`);
+        if (!response.ok) throw new Error("Lỗi mạng");
+        
+        const users = await response.json();
+        
+        // Kiểm tra nếu không có dữ liệu
+        if (!users || users.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">Không có người dùng nào trong hệ thống.</td></tr>`;
+            return;
+        }
+
+        // Tạo chuỗi HTML dựa trên dữ liệu thật từ Database
+        tbody.innerHTML = users.map(user => `
+            <tr>
+                <td>
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            ${user.ho_ten ? user.ho_ten.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                        <div>
+                            <strong>${user.ho_ten || 'Không tên'}</strong><br>
+                            <small style="color:#718096">@${user.ten_tai_khoan}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    ${user.email}<br>
+                    <small style="color:#718096">${user.so_dien_thoai || 'Chưa cập nhật'}</small>
+                </td>
+                <td>
+                    <span class="badge ${user.role === 'admin' ? 'badge-admin' : 'badge-user'}">
+                        ${user.role.toUpperCase()}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge badge-user">Hoạt động</span>
+                </td>
+                <td>
+                    <button class="btn-action btn-lock" onclick="deleteUser(${user.id})">
+                        <i class="fas fa-trash-alt"></i> Xóa
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+    } catch (error) {
+        console.error("Lỗi kết nối:", error);
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; padding: 20px;">Lỗi kết nối đến máy chủ!</td></tr>`;
+    }
+}
+
+// 2. Hàm xóa tài khoản
+async function deleteUser(userId) {
+    if (confirm("Cảnh báo: Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này?")) {
+        try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert("Đã xóa thành công!");
+                renderUsers(); // Tải lại bảng sau khi xóa
+            } else {
+                const result = await response.json();
+                alert("Lỗi: " + (result.error || "Không thể xóa"));
+            }
+        } catch (error) {
+            console.error("Lỗi khi xóa:", error);
+            alert("Lỗi kết nối khi thực hiện xóa.");
+        }
+    }
+}
+
+// Chạy khi trang load xong
+document.addEventListener('DOMContentLoaded', renderUsers);
+
+// Hàm lọc tìm kiếm
+function filterUsers() {
+    let input = document.getElementById("userSearch").value.toLowerCase();
+    let rows = document.getElementById("userList").getElementsByTagName("tr");
+    for (let row of rows) {
+        // Chỉ lọc nếu dòng đó không phải là dòng thông báo trống
+        if (row.cells.length > 1) { 
+            row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+        }
+    }
+}
+</script>
+
+</body>
+</html>
