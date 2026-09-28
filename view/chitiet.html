@@ -953,20 +953,31 @@ document.getElementById('image-list').innerHTML = htmlImg;
                 form.style.display = 'block';
             }        }
     }
+function initMap(lat, lng) {
+    // Khởi tạo map
+    map = L.map('map-detail').setView([lat, lng], 16);
+    
+    // Sử dụng tile layer của Esri để không bị lỗi tải tiles
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, and others'
+    }).addTo(map);
 
-    function initMap(lat, lng) {
-        map = L.map('map-detail').setView([lat, lng], 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        marker = L.marker([lat, lng]).addTo(map);
+    marker = L.marker([lat, lng]).addTo(map);
 
-        map.on('click', function(e) {
-            if (isEditing) {
-                marker.setLatLng(e.latlng);
-                document.getElementById('in-vi_do').value = e.latlng.lat;
-                document.getElementById('in-kinh_do').value = e.latlng.lng;
-            }
-        });
-    }
+    map.on('click', function(e) {
+        if (isEditing) {
+            marker.setLatLng(e.latlng);
+            document.getElementById('in-vi_do').value = e.latlng.lat;
+            document.getElementById('in-kinh_do').value = e.latlng.lng;
+        }
+    });
+
+    // QUAN TRỌNG: Ép Leaflet tính toán lại kích thước để lấp đầy các ô xám bị khuyết
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 300);
+}
 
     function toggleEdit() {
         isEditing = !isEditing;
