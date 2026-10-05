@@ -177,31 +177,29 @@
     }
 
     // HÀM NHẢY BẢN ĐỒ MỚI (Sử dụng Fetch API - Nominatim)
-    async function updateMapFromAddress() {
-        const diaChi = document.getElementById("dia_chi").value;
-        const thanhPhoSelect = document.getElementById("thanh_pho");
-        const thanhPhoText = thanhPhoSelect.options[thanhPhoSelect.selectedIndex].text;
+function updateMapFromAddress() {
+    const thanhPhoSelect = document.getElementById("thanh_pho");
+    const thanhPhoValue = thanhPhoSelect.value;
 
-        if (thanhPhoSelect.value === "") return;
+    if (!thanhPhoValue) return;
 
-        const query = diaChi ? `${diaChi}, ${thanhPhoText}, Việt Nam` : `${thanhPhoText}, Việt Nam`;
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+    // Tọa độ trung tâm cố định cho từng thành phố
+    let lat = 21.0285;  // Mặc định Hà Nội
+    let lng = 105.8542;
+    let zoomLevel = 12; // Mức zoom vừa đủ thấy toàn thành phố
 
-        try {
-            const response = await fetch(url);
-            const results = await response.json();
-
-            if (results && results.length > 0) {
-                const lat = parseFloat(results[0].lat);
-                const lon = parseFloat(results[0].lon);
-                
-                map.flyTo([lat, lon], diaChi ? 16 : 12);
-                updateMarker(lat, lon);
-            }
-        } catch (error) {
-            console.error("Lỗi tìm kiếm bản đồ:", error);
-        }
+    if (thanhPhoValue === "Hồ Chí Minh") {
+        lat = 10.7769;
+        lng = 106.7009;
     }
+
+    // Lập tức dịch chuyển bản đồ và đặt marker vào trung tâm thành phố đó
+    map.flyTo([lat, lng], zoomLevel);
+    updateMarker(lat, lng);
+    
+    // Xóa trắng ô địa chỉ cụ thể cũ (nếu có) để người dùng nhập lại cho đúng
+    document.getElementById("dia_chi").value = "";
+}
 
     function loadPhuongXa() {
         const thanhPho = document.getElementById('thanh_pho').value;
