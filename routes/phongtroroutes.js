@@ -50,7 +50,6 @@ router.get("/:id/danhgia", phongtroController.getDanhGia);
 
 router.get("/:id", phongtroController.getPhongTroById);
 
-// ĐẶT PHÒNG - Route mới
-router.post("/:id/datphong", authMiddleware, phongtroController.datPhong);
+
 
 module.exports = router;
