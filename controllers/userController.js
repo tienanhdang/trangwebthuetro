@@ -63,7 +63,12 @@ exports.login = async (req, res) => {
         }
 
         const user = result[0];
-
+console.log("===== LOGIN DEBUG =====");
+console.log("Tai khoan:", JSON.stringify(ten_tai_khoan));
+console.log("Mat khau:", JSON.stringify(mat_khau));
+console.log("Do dai mat khau:", mat_khau?.length);
+console.log("Hash DB:", JSON.stringify(user.mat_khau));
+console.log("=======================");
         const isMatch = await bcrypt.compare(mat_khau, user.mat_khau);
         if (!isMatch) {
             return res.status(400).json({ message: "Sai mật khẩu!" });
