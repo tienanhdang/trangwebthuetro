@@ -850,7 +850,6 @@
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
-    let isEditing = false;
     let map, marker;
 
     async function loadData() {
@@ -976,42 +975,28 @@ document.getElementById('image-list').innerHTML = htmlImg;
 function initMap(lat, lng) {
     // Khởi tạo map
     map = L.map('map-detail').setView([lat, lng], 16);
-    
-    // Sử dụng tile layer của Esri để không bị lỗi tải tiles
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, and others'
-    }).addTo(map);
 
+    // Tile layer Esri
+    L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        {
+            maxZoom: 19,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, and others'
+        }
+    ).addTo(map);
+
+    // Marker vị trí phòng
     marker = L.marker([lat, lng]).addTo(map);
 
-    map.on('click', function(e) {
-        if (isEditing) {
-            marker.setLatLng(e.latlng);
-            document.getElementById('in-vi_do').value = e.latlng.lat;
-            document.getElementById('in-kinh_do').value = e.latlng.lng;
-        }
-    });
-
-    // QUAN TRỌNG: Ép Leaflet tính toán lại kích thước để lấp đầy các ô xám bị khuyết
+    // Tính lại kích thước map
     setTimeout(() => {
         map.invalidateSize();
     }, 300);
 }
 
-    function toggleEdit() {
-        isEditing = !isEditing;
-        const fields = ['tieu_de', 'gia_tien', 'dien_tich', 'thanh_pho', 'quan_huyen', 'dia_chi', 'mo_ta'];
-        fields.forEach(f => {
-            document.getElementById(`txt-${f}`).style.display = isEditing ? 'none' : 'block';
-            document.getElementById(`in-${f}`).style.display = isEditing ? 'block' : 'none';
-        });
-
-        document.getElementById('btn-save').style.display = isEditing ? 'flex' : 'none';
-        document.getElementById('map-hint').style.display = isEditing ? 'block' : 'none';
-        document.getElementById('btn-toggle').innerHTML = isEditing ? '❌ Hủy bỏ' : '✏️ Chỉnh sửa bài đăng';
-        document.getElementById('btn-toggle').style.background = isEditing ? '#7f8c8d' : '#f39c12';
-    }
+function toggleEdit() {
+    window.location.href = `suaphong.html?id=${id}`;
+}
 
     async function saveData() {
         const token = localStorage.getItem('token');
