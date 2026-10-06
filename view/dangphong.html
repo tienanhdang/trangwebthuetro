@@ -4,75 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng phòng trọ</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
     <style>
-        :root { 
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            --glass: rgba(255, 255, 255, 0.95); 
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass: rgba(255, 255, 255, 0.95);
         }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: var(--primary-gradient); 
-            background-attachment: fixed; 
-            margin: 0; 
-            min-height: 100vh; 
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-gradient);
+            background-attachment: fixed;
+            margin: 0;
+            min-height: 100vh;
         }
-        .nav-bar { 
-            background: rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(10px); 
-            padding: 15px 30px; 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .nav-bar a { color: white; text-decoration: none; font-weight: bold; }
-        
-        .form-container { 
-            background: var(--glass); 
-            padding: 40px; 
-            border-radius: 24px; 
-            max-width: 700px; 
-            margin: 40px auto; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
+
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
         }
-        h2 { text-align: center; color: #2d3436; margin-bottom: 25px; }
-        label { display: block; font-size: 14px; font-weight: 600; color: #718096; margin-bottom: 5px; }
-        
-        input, select, textarea { 
-            width: 100%; 
-            padding: 12px; 
-            margin-bottom: 20px; 
-            border: 2px solid #edf2f7; 
-            border-radius: 12px; 
-            box-sizing: border-box; 
-            outline: none; 
+
+        .form-container {
+            background: var(--glass);
+            padding: 40px;
+            border-radius: 24px;
+            max-width: 700px;
+            margin: 40px auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2d3436;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #edf2f7;
+            border-radius: 12px;
+            box-sizing: border-box;
+            outline: none;
             transition: 0.3s;
         }
-        input:focus, select:focus { border-color: #667eea; }
 
-        #map-selection { 
-            width: 100%; 
-            height: 350px; 
-            border-radius: 16px; 
-            margin-bottom: 20px; 
-            border: 3px solid white; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        input:focus,
+        select:focus {
+            border-color: #667eea;
         }
 
-        button { 
-            padding: 16px; 
-            background: var(--primary-gradient); 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            width: 100%; 
-            font-size: 18px; 
-            font-weight: bold; 
-            transition: 0.3s; 
+        #map-selection {
+            width: 100%;
+            height: 350px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 3px solid white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        button {
+            padding: 16px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
     </style>
 </head>
+
 <body>
 
 <div class="nav-bar">
@@ -80,199 +114,619 @@
 </div>
 
 <div class="form-container">
+
     <h2>🚀 Đăng phòng trọ mới</h2>
 
     <label>Tiêu đề bài viết</label>
-    <input id="tieu_de" placeholder="Ví dụ: Phòng trọ khép kín gần trung tâm...">
+    <input
+        id="tieu_de"
+        placeholder="Ví dụ: Phòng trọ khép kín gần trung tâm..."
+    >
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+
         <div>
             <label>Giá tiền (VNĐ/tháng)</label>
-            <input id="gia_tien" type="number" placeholder="3500000">
+            <input
+                id="gia_tien"
+                type="number"
+                placeholder="3500000"
+            >
         </div>
+
         <div>
             <label>Diện tích (m²)</label>
-            <input id="dien_tich" type="number" placeholder="25">
+            <input
+                id="dien_tich"
+                type="number"
+                placeholder="25"
+            >
         </div>
+
     </div>
 
     <label>Địa chỉ cụ thể (Số nhà, tên đường)</label>
-    <input id="dia_chi" placeholder="Số 5 Phố Hàng Bạc..." onchange="updateMapFromAddress()">
+
+    <input
+        id="dia_chi"
+        placeholder="Số 5 Phố Hàng Bạc..."
+        onchange="updateMapFromAddress()"
+    >
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+
         <div>
             <label>Thành phố</label>
-            <select id="thanh_pho" onchange="loadPhuongXa(); updateMapFromAddress();">
+
+            <select
+                id="thanh_pho"
+                onchange="loadPhuongXa(); updateMapFromAddress();"
+            >
                 <option value="">Chọn thành phố</option>
                 <option value="Hà Nội">Hà Nội</option>
                 <option value="Hồ Chí Minh">Thành phố Hồ Chí Minh</option>
             </select>
         </div>
+
         <div>
             <label>Phường xã</label>
+
             <select id="phuong_xa">
                 <option value="">Chọn phường xã</option>
             </select>
         </div>
+
     </div>
 
     <label>Mô tả chi tiết</label>
-    <textarea id="mo_ta" rows="4" placeholder="Thông tin về điện nước, tiện ích..."></textarea>
+
+    <textarea
+        id="mo_ta"
+        rows="4"
+        placeholder="Thông tin về điện nước, tiện ích..."
+    ></textarea>
 
     <h3>📍 Vị trí trên bản đồ</h3>
+
     <div id="map-selection"></div>
-    
-    <input type="hidden" id="lat">
-    <input type="hidden" id="lng">
+
+    <input
+        type="hidden"
+        id="lat"
+    >
+
+    <input
+        type="hidden"
+        id="lng"
+    >
 
     <h3>🖼️ Hình ảnh thực tế</h3>
-    <input type="file" id="images" multiple accept="image/*">
 
-    <button onclick="add()">ĐĂNG PHÒNG</button>
+    <input
+        type="file"
+        id="images"
+        multiple
+        accept="image/*"
+    >
+
+    <button onclick="add()">
+        ĐĂNG PHÒNG
+    </button>
+
 </div>
+
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    let map, marker;
 
-    const phuongXaHaNoi = ["Hoàn Kiếm","Cửa Nam","Ba Đình","Ngọc Hà","Giảng Võ","Hai Bà Trưng","Vĩnh Tuy","Bạch Mai","Đống Đa","Kim Liên","Văn Miếu - Quốc Tử Giám","Láng","Ô Chợ Dừa","Hồng Hà","Lĩnh Nam","Hoàng Mai","Vĩnh Hưng","Tương Mai","Định Công","Hoàng Liệt","Yên Sở","Thanh Xuân","Khương Đình","Phương Liệt","Cầu Giấy","Nghĩa Đô","Yên Hòa","Tây Hồ","Phú Thượng","Tây Tựu","Phú Diễn","Xuân Đỉnh","Đông Ngạc","Thượng Cát","Từ Liêm","Xuân Phương","Tây Mỗ","Đại Mỗ","Long Biên","Bồ Đề","Việt Hưng","Phúc Lợi","Hà Đông","Dương Nội","Yên Nghĩa","Phú Lương","Kiến Hưng","Thanh Liệt"];
-    const phuongXaHCM = ['Phường Sài Gòn','Phường Tân Định','Phường Bến Thành','Phường Cầu Ông Lãnh','Phường Bàn Cờ','Phường Xuân Hòa','Phường Nhiêu Lộc','Phường Xóm Chiếu','Phường Khánh Hội','Phường Vĩnh Hội','Phường Chợ Quán','Phường An Đông','Phường Chợ Lớn','Phường Bình Tây','Phường Bình Tiên','Phường Bình Phú','Phường Phú Lâm','Phường Tân Thuận','Phường Phú Thuận','Phường Tân Mỹ','Phường Tân Hưng','Phường Chánh Hưng','Phường Phú Định','Phường Bình Đông','Phường Diên Hồng','Phường Vườn Lài','Phường Hòa Hưng','Phường Minh Phụng','Phường Bình Thới','Phường Hòa Bình','Phường Phú Thọ','Phường Đông Hưng Thuận','Phường Trung Mỹ Tây','Phường Tân Thới Hiệp','Phường Thới An','Phường An Phú Đông','Phường An Lạc','Phường Bình Tân','Phường Tân Tạo','Phường Bình Trị Đông','Phường Bình Hưng Hòa','Phường Gia Định','Phường Bình Thạnh','Phường Bình Lợi Trung','Phường Thạnh Mỹ Tây','Phường Bình Quới','Phường Hạnh Thông','Phường An Nhơn','Phường Gò Vấp','Phường An Hội Đông','Phường Thông Tây Hội','Phường An Hội Tây','Phường Đức Nhuận','Phường Cầu Kiệu','Phường Phú Nhuận','Phường Tân Sơn Hòa','Phường Tân Sơn Nhất','Phường Tân Hòa','Phường Bảy Hiền','Phường Tân Bình','Phường Tân Sơn','Phường Tây Thạnh','Phường Tân Sơn Nhì','Phường Phú Thọ Hòa','Phường Tân Phú','Phường Phú Thạnh','Phường Hiệp Bình','Phường Thủ Đức','Phường Tam Bình','Phường Linh Xuân','Phường Tăng Nhơn Phú','Phường Long Bình','Phường Long Phước','Phường Long Trường','Phường Cát Lái','Phường Bình Trưng','Phường Phước Long','Phường An Khánh'];
+    let map;
+    let marker;
+
+
+    // =====================================================
+    // DANH SÁCH PHƯỜNG XÃ
+    // =====================================================
+
+    const phuongXaHaNoi = [
+        "Hoàn Kiếm",
+        "Cửa Nam",
+        "Ba Đình",
+        "Ngọc Hà",
+        "Giảng Võ",
+        "Hai Bà Trưng",
+        "Vĩnh Tuy",
+        "Bạch Mai",
+        "Đống Đa",
+        "Kim Liên",
+        "Văn Miếu - Quốc Tử Giám",
+        "Láng",
+        "Ô Chợ Dừa",
+        "Hồng Hà",
+        "Lĩnh Nam",
+        "Hoàng Mai",
+        "Vĩnh Hưng",
+        "Tương Mai",
+        "Định Công",
+        "Hoàng Liệt",
+        "Yên Sở",
+        "Thanh Xuân",
+        "Khương Đình",
+        "Phương Liệt",
+        "Cầu Giấy",
+        "Nghĩa Đô",
+        "Yên Hòa",
+        "Tây Hồ",
+        "Phú Thượng",
+        "Tây Tựu",
+        "Phú Diễn",
+        "Xuân Đỉnh",
+        "Đông Ngạc",
+        "Thượng Cát",
+        "Từ Liêm",
+        "Xuân Phương",
+        "Tây Mỗ",
+        "Đại Mỗ",
+        "Long Biên",
+        "Bồ Đề",
+        "Việt Hưng",
+        "Phúc Lợi",
+        "Hà Đông",
+        "Dương Nội",
+        "Yên Nghĩa",
+        "Phú Lương",
+        "Kiến Hưng",
+        "Thanh Liệt"
+    ];
+
+
+    const phuongXaHCM = [
+        "Phường Sài Gòn",
+        "Phường Tân Định",
+        "Phường Bến Thành",
+        "Phường Cầu Ông Lãnh",
+        "Phường Bàn Cờ",
+        "Phường Xuân Hòa",
+        "Phường Nhiêu Lộc",
+        "Phường Xóm Chiếu",
+        "Phường Khánh Hội",
+        "Phường Vĩnh Hội",
+        "Phường Chợ Quán",
+        "Phường An Đông",
+        "Phường Chợ Lớn",
+        "Phường Bình Tây",
+        "Phường Bình Tiên",
+        "Phường Bình Phú",
+        "Phường Phú Lâm",
+        "Phường Tân Thuận",
+        "Phường Phú Thuận",
+        "Phường Tân Mỹ",
+        "Phường Tân Hưng",
+        "Phường Chánh Hưng",
+        "Phường Phú Định",
+        "Phường Bình Đông",
+        "Phường Diên Hồng",
+        "Phường Vườn Lài",
+        "Phường Hòa Hưng",
+        "Phường Minh Phụng",
+        "Phường Bình Thới",
+        "Phường Hòa Bình",
+        "Phường Phú Thọ",
+        "Phường Đông Hưng Thuận",
+        "Phường Trung Mỹ Tây",
+        "Phường Tân Thới Hiệp",
+        "Phường Thới An",
+        "Phường An Phú Đông",
+        "Phường An Lạc",
+        "Phường Bình Tân",
+        "Phường Tân Tạo",
+        "Phường Bình Trị Đông",
+        "Phường Bình Hưng Hòa",
+        "Phường Gia Định",
+        "Phường Bình Thạnh",
+        "Phường Bình Lợi Trung",
+        "Phường Thạnh Mỹ Tây",
+        "Phường Bình Quới",
+        "Phường Hạnh Thông",
+        "Phường An Nhơn",
+        "Phường Gò Vấp",
+        "Phường An Hội Đông",
+        "Phường Thông Tây Hội",
+        "Phường An Hội Tây",
+        "Phường Đức Nhuận",
+        "Phường Cầu Kiệu",
+        "Phường Phú Nhuận",
+        "Phường Tân Sơn Hòa",
+        "Phường Tân Sơn Nhất",
+        "Phường Tân Hòa",
+        "Phường Bảy Hiền",
+        "Phường Tân Bình",
+        "Phường Tân Sơn",
+        "Phường Tây Thạnh",
+        "Phường Tân Sơn Nhì",
+        "Phường Phú Thọ Hòa",
+        "Phường Tân Phú",
+        "Phường Phú Thạnh",
+        "Phường Hiệp Bình",
+        "Phường Thủ Đức",
+        "Phường Tam Bình",
+        "Phường Linh Xuân",
+        "Phường Tăng Nhơn Phú",
+        "Phường Long Bình",
+        "Phường Long Phước",
+        "Phường Long Trường",
+        "Phường Cát Lái",
+        "Phường Bình Trưng",
+        "Phường Phước Long",
+        "Phường An Khánh"
+    ];
+
+
+    // =====================================================
+    // KHỞI TẠO MAP
+    // =====================================================
 
     function initLeafletMap() {
-    const defaultLat = 21.0285;
-    const defaultLng = 105.8542;
-    
-    map = L.map('map-selection').setView([defaultLat, defaultLng], 13);
-    
-    // Sử dụng bản đồ miễn phí của Esri (Không cần API Key, load rất mượt)
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, and others'
-    }).addTo(map);
 
-    updateMarker(defaultLat, defaultLng);
+        const defaultLat = 21.0285;
+        const defaultLng = 105.8542;
 
-    map.on('click', function(e) {
-        updateMarker(e.latlng.lat, e.latlng.lng);
-    });
+        map = L.map('map-selection').setView(
+            [defaultLat, defaultLng],
+            13
+        );
 
-    // Ép làm mới kích thước bản đồ
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 300);
-}
+
+        // Bản đồ Esri miễn phí
+        L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+            {
+                maxZoom: 19,
+                attribution:
+                    'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, and others'
+            }
+        ).addTo(map);
+
+
+        // Marker mặc định
+        updateMarker(
+            defaultLat,
+            defaultLng
+        );
+
+
+        // Click lên bản đồ để chọn vị trí
+        map.on('click', function(e) {
+
+            updateMarker(
+                e.latlng.lat,
+                e.latlng.lng
+            );
+
+        });
+
+
+        // Làm mới kích thước map
+        setTimeout(() => {
+
+            map.invalidateSize();
+
+        }, 300);
+    }
+
+
+    // =====================================================
+    // CẬP NHẬT MARKER
+    // =====================================================
 
     function updateMarker(lat, lng) {
-        if (marker) map.removeLayer(marker);
-        marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+
+        if (marker) {
+
+            map.removeLayer(marker);
+
+        }
+
+
+        marker = L.marker(
+            [lat, lng],
+            {
+                draggable: true
+            }
+        ).addTo(map);
+
+
+        // Lưu tọa độ
         document.getElementById("lat").value = lat;
         document.getElementById("lng").value = lng;
 
+
+        // Khi kéo marker
         marker.on('dragend', function() {
+
             const pos = marker.getLatLng();
-            document.getElementById("lat").value = pos.lat;
-            document.getElementById("lng").value = pos.lng;
+
+            document.getElementById("lat").value =
+                pos.lat;
+
+            document.getElementById("lng").value =
+                pos.lng;
+
         });
     }
 
-    // HÀM NHẢY BẢN ĐỒ MỚI (Sử dụng Fetch API - Nominatim)
-function updateMapFromAddress() {
-    const thanhPhoSelect = document.getElementById("thanh_pho");
-    const thanhPhoValue = thanhPhoSelect.value;
 
-    if (!thanhPhoValue) return;
+    // =====================================================
+    // CẬP NHẬT MAP KHI CHỌN THÀNH PHỐ
+    // =====================================================
 
-    // Tọa độ trung tâm cố định cho từng thành phố
-    let lat = 21.0285;  // Mặc định Hà Nội
-    let lng = 105.8542;
-    let zoomLevel = 12; // Mức zoom vừa đủ thấy toàn thành phố
+    function updateMapFromAddress() {
 
-    if (thanhPhoValue === "Hồ Chí Minh") {
-        lat = 10.7769;
-        lng = 106.7009;
-    }
+        const thanhPhoSelect =
+            document.getElementById("thanh_pho");
 
-    // Lập tức dịch chuyển bản đồ và đặt marker vào trung tâm thành phố đó
-    map.flyTo([lat, lng], zoomLevel);
-    updateMarker(lat, lng);
-    
-    // Xóa trắng ô địa chỉ cụ thể cũ (nếu có) để người dùng nhập lại cho đúng
-    document.getElementById("dia_chi").value = "";
-}
+        const thanhPhoValue =
+            thanhPhoSelect.value;
 
-    function loadPhuongXa() {
-        const thanhPho = document.getElementById('thanh_pho').value;
-        const phuongXaSelect = document.getElementById('phuong_xa');
-        phuongXaSelect.innerHTML = '<option value="">Chọn phường xã</option>';
-        
-        let data = [];
-        if (thanhPho === 'Hà Nội') data = phuongXaHaNoi;
-        else if (thanhPho === 'Hồ Chí Minh') data = phuongXaHCM;
 
-        data.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item;
-            option.textContent = item;
-            phuongXaSelect.appendChild(option);
-        });
-    }
-
-    initLeafletMap();
-
-    async function add() {
-        // 1. Lấy Token từ localStorage (Bạn phải lưu token này khi đăng nhập thành công)
-        const token = localStorage.getItem('token'); 
-        
-        if (!token) {
-            alert("Vui lòng đăng nhập để thực hiện chức năng này!");
+        if (!thanhPhoValue) {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('tieu_de', document.getElementById('tieu_de').value);
-        formData.append('dia_chi', document.getElementById('dia_chi').value);
-        formData.append('thanh_pho', document.getElementById('thanh_pho').value);
-        formData.append('phuong_xa', document.getElementById('phuong_xa').value);
-        formData.append('gia_tien', document.getElementById('gia_tien').value);
-        formData.append('dien_tich', document.getElementById('dien_tich').value);
-        formData.append('mo_ta', document.getElementById('mo_ta').value);
-        formData.append('vi_do', document.getElementById('lat').value);
-        formData.append('kinh_do', document.getElementById('lng').value);
 
-        const imageFiles = document.getElementById('images').files;
-        for (let i = 0; i < imageFiles.length; i++) {
-            formData.append('images', imageFiles[i]);
+        // Mặc định Hà Nội
+        let lat = 21.0285;
+        let lng = 105.8542;
+
+        let zoomLevel = 12;
+
+
+        // Nếu chọn TP Hồ Chí Minh
+        if (thanhPhoValue === "Hồ Chí Minh") {
+
+            lat = 10.7769;
+            lng = 106.7009;
+
         }
 
-        try {
-            // 2. Sửa lại URL thành '/phongtro' để khớp với server.js
-            const response = await fetch('/phongtro', { 
-                method: 'POST',
-                headers: {
-                    // 3. Gửi kèm Token để qua được authMiddleware
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData 
-            });
 
-            // Kiểm tra nếu lỗi xác thực (401 hoặc 403)
-            if (response.status === 401 || response.status === 403) {
-                alert("Phiên đăng nhập hết hạn hoặc không có quyền!");
+        // Di chuyển map
+        map.flyTo(
+            [lat, lng],
+            zoomLevel
+        );
+
+
+        // Cập nhật marker
+        updateMarker(
+            lat,
+            lng
+        );
+
+
+        /*
+            QUAN TRỌNG:
+
+            Không xóa giá trị #dia_chi ở đây.
+
+            Trước đây có dòng:
+
+            document.getElementById("dia_chi").value = "";
+
+            Chính dòng này khiến địa chỉ người dùng
+            nhập bị xóa khi chọn thành phố.
+        */
+    }
+
+
+    // =====================================================
+    // LOAD PHƯỜNG XÃ
+    // =====================================================
+
+    function loadPhuongXa() {
+
+        const thanhPho =
+            document.getElementById('thanh_pho').value;
+
+        const phuongXaSelect =
+            document.getElementById('phuong_xa');
+
+
+        phuongXaSelect.innerHTML =
+            '<option value="">Chọn phường xã</option>';
+
+
+        let data = [];
+
+
+        if (thanhPho === 'Hà Nội') {
+
+            data = phuongXaHaNoi;
+
+        } else if (thanhPho === 'Hồ Chí Minh') {
+
+            data = phuongXaHCM;
+
+        }
+
+
+        data.forEach(item => {
+
+            const option =
+                document.createElement('option');
+
+            option.value = item;
+            option.textContent = item;
+
+            phuongXaSelect.appendChild(option);
+
+        });
+    }
+
+
+    // =====================================================
+    // KHỞI TẠO MAP
+    // =====================================================
+
+    initLeafletMap();
+
+
+    // =====================================================
+    // ĐĂNG PHÒNG
+    // =====================================================
+
+    async function add() {
+
+        // Lấy token
+        const token =
+            localStorage.getItem('token');
+
+
+        // Chưa đăng nhập
+        if (!token) {
+
+            alert(
+                "Vui lòng đăng nhập để thực hiện chức năng này!"
+            );
+
+            return;
+        }
+
+
+        // Tạo FormData
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            'tieu_de',
+            document.getElementById('tieu_de').value
+        );
+
+        formData.append(
+            'dia_chi',
+            document.getElementById('dia_chi').value
+        );
+
+        formData.append(
+            'thanh_pho',
+            document.getElementById('thanh_pho').value
+        );
+
+        formData.append(
+            'phuong_xa',
+            document.getElementById('phuong_xa').value
+        );
+
+        formData.append(
+            'gia_tien',
+            document.getElementById('gia_tien').value
+        );
+
+        formData.append(
+            'dien_tich',
+            document.getElementById('dien_tich').value
+        );
+
+        formData.append(
+            'mo_ta',
+            document.getElementById('mo_ta').value
+        );
+
+
+        // Lưu tọa độ
+        formData.append(
+            'vi_do',
+            document.getElementById('lat').value
+        );
+
+        formData.append(
+            'kinh_do',
+            document.getElementById('lng').value
+        );
+
+
+        // Hình ảnh
+        const imageFiles =
+            document.getElementById('images').files;
+
+
+        for (
+            let i = 0;
+            i < imageFiles.length;
+            i++
+        ) {
+
+            formData.append(
+                'images',
+                imageFiles[i]
+            );
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    '/phongtro',
+                    {
+                        method: 'POST',
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        },
+
+                        body: formData
+                    }
+                );
+
+
+            // Không có quyền
+            if (
+                response.status === 401 ||
+                response.status === 403
+            ) {
+
+                alert(
+                    "Phiên đăng nhập hết hạn hoặc không có quyền!"
+                );
+
                 return;
             }
 
-            const result = await response.json();
-            alert(result.message || "Đăng phòng thành công!");
-            
+
+            const result =
+                await response.json();
+
+
+            alert(
+                result.message ||
+                "Đăng phòng thành công!"
+            );
+
+
             if (response.ok) {
-                window.location.href = "index.html"; 
+
+                window.location.href =
+                    "index.html";
+
             }
+
         } catch (error) {
-            console.error("Lỗi kết nối:", error);
-            alert("Không thể kết nối đến máy chủ.");
+
+            console.error(
+                "Lỗi kết nối:",
+                error
+            );
+
+            alert(
+                "Không thể kết nối đến máy chủ."
+            );
         }
     }
+
 </script>
 
 </body>
