@@ -252,10 +252,7 @@ test('Sinh viên không được truy cập trực tiếp trang quản lý phòn
 });
 
 
-// =====================================================
-// 10. CHỦ TRỌ KHÔNG ĐƯỢC TRUY CẬP TRANG QUẢN LÝ USER
-//     ĐÃ KIỂM TRA Ở TEST 5
-// =====================================================
+
 
 // Không cần thêm test trùng với TC 5.
 // Test 5 đã kiểm tra trường hợp này.
