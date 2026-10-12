@@ -1,87 +1,147 @@
--- Thêm các bảng mới cho hệ thống chat và đặt phòng
+```sql
+CREATE DATABASE IF NOT EXISTS trangwebthuetro
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
 
--- Bảng nguoi_dung (đã có, kiểm tra lại)
--- Bảng phong_tro (đã có, kiểm tra lại)
+USE trangwebthuetro;
 
--- Bảng Conversations (cuộc trò chuyện)
--- Xóa foreign key constraint cũ nếu có
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+-- 1. Bảng người dùng
+CREATE TABLE nguoi_dung (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ho_ten VARCHAR(100),
+    email VARCHAR(100),
+    so_dien_thoai VARCHAR(15),
+    ten_tai_khoan VARCHAR(50),
+    mat_khau VARCHAR(255),
+    role ENUM('sinh_vien', 'chu_tro', 'admin')
+);
 
-DROP TABLE IF EXISTS conversations;
+-- 2. Bảng phòng trọ
+CREATE TABLE phong_tro (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    chu_phong_id INT UNSIGNED,
+    tieu_de VARCHAR(255),
+    dia_chi VARCHAR(255),
+    phuong_xa VARCHAR(100),
+    thanh_pho VARCHAR(100),
+    gia_tien DECIMAL(12,2),
+    dien_tich FLOAT,
+    trang_thai ENUM('con_trong', 'o_ghep', 'da_thue'),
+    mo_ta TEXT,
+    quy_dinh TEXT,
+    ghi_chu TEXT,
+    vi_do DECIMAL(10,8),
+    kinh_do DECIMAL(11,8),
+    ngay_dang TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ngay_cap_nhat TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (chu_phong_id)
+        REFERENCES nguoi_dung(id)
+);
 
+-- 3. Bảng hình ảnh phòng
+CREATE TABLE hinh_anh_phong (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    phong_id INT UNSIGNED,
+    duong_dan_anh VARCHAR(255),
+    FOREIGN KEY (phong_id)
+        REFERENCES phong_tro(id)
+        ON DELETE CASCADE
+);
+
+-- 4. Bảng nội thất
+CREATE TABLE noi_that (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ten_noi_that VARCHAR(100)
+);
+
+-- 5. Bảng liên kết phòng trọ - nội thất
+CREATE TABLE phong_noi_that (
+    phong_id INT UNSIGNED,
+    noi_that_id INT UNSIGNED,
+    PRIMARY KEY (phong_id, noi_that_id),
+    FOREIGN KEY (phong_id)
+        REFERENCES phong_tro(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (noi_that_id)
+        REFERENCES noi_that(id)
+        ON DELETE CASCADE
+);
+
+-- 6. Bảng đánh giá
+CREATE TABLE danh_gia (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    phong_id INT UNSIGNED,
+    nguoi_dung_id INT UNSIGNED,
+    so_sao INT,
+    binh_luan TEXT,
+    ngay_danh_gia TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (phong_id)
+        REFERENCES phong_tro(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (nguoi_dung_id)
+        REFERENCES nguoi_dung(id)
+);
+
+-- 7. Bảng cuộc trò chuyện
 CREATE TABLE conversations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user1_id INT NOT NULL,
-    user2_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user1_id INT UNSIGNED,
+    user2_id INT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user1_id) REFERENCES nguoi_dung(id) ON DELETE CASCADE,
-    FOREIGN KEY (user2_id) REFERENCES nguoi_dung(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_conversation (user1_id, user2_id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user1_id)
+        REFERENCES nguoi_dung(id),
+    FOREIGN KEY (user2_id)
+        REFERENCES nguoi_dung(id)
 );
 
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-
--- Bảng Messages (tin nhắn)
--- Xóa bảng cũ nếu có
-DROP TABLE IF EXISTS messages;
-
+-- 8. Bảng tin nhắn
 CREATE TABLE messages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    conversation_id INT NOT NULL,
-    sender_id INT NOT NULL,
-    content TEXT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    conversation_id INT UNSIGNED,
+    sender_id INT UNSIGNED,
+    content TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
-    FOREIGN KEY (sender_id) REFERENCES nguoi_dung(id) ON DELETE CASCADE
+    FOREIGN KEY (conversation_id)
+        REFERENCES conversations(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (sender_id)
+        REFERENCES nguoi_dung(id)
 );
 
--- Bảng Bookings (đặt phòng)
--- Xóa bảng cũ nếu có
-DROP TABLE IF EXISTS bookings;
-
+-- 9. Bảng đặt phòng
 CREATE TABLE bookings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    room_id INT NOT NULL,
-    ho_ten VARCHAR(255) NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED,
+    room_id INT UNSIGNED,
+    ho_ten VARCHAR(255),
     ngay_sinh DATE,
-    so_dien_thoai VARCHAR(20),
-    ngay_nhan_phong DATE,
-    so_nguoi_o INT DEFAULT 1,
-    trang_thai VARCHAR(50) DEFAULT 'pending',
+    so_nguoi INT,
+    trang_thai VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES nguoi_dung(id) ON DELETE CASCADE,
-    FOREIGN KEY (room_id) REFERENCES phong_tro(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id)
+        REFERENCES nguoi_dung(id),
+    FOREIGN KEY (room_id)
+        REFERENCES phong_tro(id)
 );
 
--- Bảng Notifications (thông báo)
--- Xóa bảng cũ nếu có
-DROP TABLE IF EXISTS notifications;
-
+-- 10. Bảng thông báo
 CREATE TABLE notifications (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    booking_id INT DEFAULT NULL,
-    message TEXT NOT NULL,
-    is_read BOOLEAN DEFAULT FALSE,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED,
+    sender_id INT UNSIGNED,
+    type VARCHAR(50),
+    message TEXT,
+    is_read TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES nguoi_dung(id) ON DELETE CASCADE,
-    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
+    booking_id INT,
+    FOREIGN KEY (user_id)
+        REFERENCES nguoi_dung(id),
+    FOREIGN KEY (sender_id)
+        REFERENCES nguoi_dung(id),
+    FOREIGN KEY (booking_id)
+        REFERENCES bookings(id)
 );
-
--- Tạo index để tối ưu hiệu suất
-CREATE INDEX idx_conversations_users ON conversations(user1_id, user2_id);
-CREATE INDEX idx_messages_conversation ON messages(conversation_id);
-CREATE INDEX idx_messages_sender ON messages(sender_id);
-CREATE INDEX idx_bookings_user ON bookings(user_id);
-CREATE INDEX idx_bookings_room ON bookings(room_id);
-CREATE INDEX idx_notifications_user ON notifications(user_id);
-
--- Cập nhật bảng nguoi_dung để thêm role nếu chưa có
-ALTER TABLE nguoi_dung ADD COLUMN IF NOT EXISTS role ENUM('sinh_vien', 'chu_tro') DEFAULT 'sinh_vien';
-
--- Cập nhật bảng phong_tro để thêm trạng thái nếu chưa có
-ALTER TABLE phong_tro ADD COLUMN IF NOT EXISTS trang_thai VARCHAR(50) DEFAULT 'con_trong';
+```
